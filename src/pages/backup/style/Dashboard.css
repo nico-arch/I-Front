@@ -1,0 +1,19 @@
+/* Dashboard.css */
+
+.bg-primary-custom {
+  background-color: #6c5ce7;
+}
+
+.bg-info-custom {
+  background-color: #00b894;
+}
+
+.card-custom {
+  border-radius: 15px;
+  overflow: hidden;
+  transition: transform 0.2s;
+}
+
+.card-custom:hover {
+  transform: translateY(-5px);
+}

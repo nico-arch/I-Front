@@ -1,19 +1,17 @@
-// frontend/src/App.js
-import React from "react";
-import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router'; // Import depuis 'react-router' au lieu de 'react-router-dom'
+import Layout from './components/Layout';
+import Dashboard from './pages/Dashboard';
+import Login from './pages/Login';
 
-const App = () => {
-  return (
-    <Router>
-      <Switch>
-        <Route path="/login" component={Login} />
-        <Route path="/dashboard" component={Dashboard} />
-        <Route path="/" exact component={Login} />
-      </Switch>
-    </Router>
-  );
-};
+const App = () => (
+  <Router>
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
+      {/* Ajouter les autres routes ici */}
+    </Routes>
+  </Router>
+);
 
 export default App;

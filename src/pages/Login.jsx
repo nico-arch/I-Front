@@ -1,59 +1,57 @@
-// frontend/src/pages/Login.js
 import React, { useState } from "react";
-import API from "../services/api";
-import { useHistory } from "react-router-dom";
+import { Form, Button, Container, Row, Col } from "react-bootstrap";
+import axios from "axios";
 
 const Login = () => {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const history = useHistory();
 
-
-  
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await API.post("/users/login", { username, password });
-      localStorage.setItem("token", data.token);
-      history.push("/dashboard");
+      const response = await axios.post("/auth/login", { email, password });
+      console.log(response.data);
+      // Redirection vers le tableau de bord
     } catch (error) {
-      console.error(error);
+      console.error("Erreur lors de la connexion", error);
     }
   };
 
   return (
-    <div className="container">
-      <h2>Login</h2>
-      <form onSubmit={handleLogin}>
-        <div className="mb-3">
-          <label htmlFor="username" className="form-label">
-            Username
-          </label>
-          <input
-            type="text"
-            className="form-control"
-            id="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="password" className="form-label">
-            Password
-          </label>
-          <input
-            type="password"
-            className="form-control"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-        <button type="submit" className="btn btn-primary">
-          Login
-        </button>
-      </form>
-    </div>
+    <Container>
+      <Row className="justify-content-md-center">
+        <Col md={6}>
+          <h2 className="text-center">Connexion</h2>
+          <Form onSubmit={handleSubmit}>
+            <Form.Group controlId="formEmail">
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                type="email"
+                placeholder="Entrer votre email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group controlId="formPassword">
+              <Form.Label>Mot de passe</Form.Label>
+              <Form.Control
+                type="password"
+                placeholder="Entrer votre mot de passe"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </Form.Group>
+
+            <Button variant="primary" type="submit" className="mt-3">
+              Connexion
+            </Button>
+          </Form>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 
