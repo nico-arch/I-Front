@@ -1,19 +1,21 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Form, Button, Container, Row, Col } from "react-bootstrap";
-import axios from "axios";
+import { login } from "../services/authService";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("/auth/login", { email, password });
-      console.log(response.data);
-      // Redirection vers le tableau de bord
-    } catch (error) {
-      console.error("Erreur lors de la connexion", error);
+      await login(email, password);
+      navigate("/dashboard"); // Rediriger vers le tableau de bord après connexion
+    } catch (err) {
+      setError("Identifiants invalides "+err);
     }
   };
 
@@ -22,6 +24,7 @@ const Login = () => {
       <Row className="justify-content-md-center">
         <Col md={6}>
           <h2 className="text-center">Connexion</h2>
+          {error && <p className="text-danger">{error}</p>}
           <Form onSubmit={handleSubmit}>
             <Form.Group controlId="formEmail">
               <Form.Label>Email</Form.Label>
