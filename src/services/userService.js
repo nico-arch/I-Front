@@ -15,7 +15,10 @@ const getHeaders = () => {
 const handleError = (error) => {
   if (error.response) {
     // Erreurs renvoyées par le serveur
-    throw new Error(error.response.data.msg || "Une erreur s'est produite"+`${error}`);
+    throw new Error(
+      error.response.data.msg ||
+        "Une erreur s'est produite, erreur: " + `${error}`,
+    );
   } else if (error.request) {
     // Erreur réseau ou absence de réponse
     throw new Error("Erreur réseau : impossible de contacter le serveur");

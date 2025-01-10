@@ -1,42 +1,66 @@
 import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+} from "react-router-dom";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
+import Clients from "./pages/Clients";
 import Login from "./pages/Login";
-import PrivateRoute from "./components/PrivateRoute";
 
-const App = () => (
-  <Router>
-    <Routes>
-      {/* Route de connexion */}
-      <Route path="/" element={<Login />} />
+const App = () => {
+  // Fonction pour vérifier si l'utilisateur est authentifié
+  const isAuthenticated = () => {
+    return localStorage.getItem("token") !== null;
+  };
 
-      {/* Route du tableau de bord (protégée) */}
-      <Route
-        path="/dashboard"
-        element={
-          <PrivateRoute>
-            <Layout>
-              <Dashboard />
-            </Layout>
-          </PrivateRoute>
-        }
-      />
-
-      {/* Route de gestion des utilisateurs (protégée) */}
-      <Route
-        path="/users"
-        element={
-          <PrivateRoute>
-            <Layout>
-              <Users />
-            </Layout>
-          </PrivateRoute>
-        }
-      />
-    </Routes>
-  </Router>
-);
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route
+          path="/dashboard"
+          element={
+            isAuthenticated() ? (
+              <Layout>
+                <Dashboard />
+              </Layout>
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+        <Route
+          path="/users"
+          element={
+            isAuthenticated() ? (
+              <Layout>
+                <Users />
+              </Layout>
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+        <Route
+          path="/clients"
+          element={
+            isAuthenticated() ? (
+              <Layout>
+                <Clients />
+              </Layout>
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+        {/* Ajouter d'autres routes ici si nécessaire */}
+      </Routes>
+    </Router>
+  );
+};
 
 export default App;
