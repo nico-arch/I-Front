@@ -10,6 +10,8 @@ import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
 import Clients from "./pages/Clients";
 import Login from "./pages/Login";
+import Categories from "./pages/Categories"; // Importer le composant Categories
+import Products from "./pages/Products"; // Importer le composant Products
 
 const App = () => {
   // Fonction pour vérifier si l'utilisateur est authentifié
@@ -57,6 +59,32 @@ const App = () => {
             )
           }
         />
+        <Route
+          path="/categories"
+          element={
+            isAuthenticated() ? (
+              <Layout>
+                <Categories />
+              </Layout>
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+
+        <Route
+          path="/products"
+          element={
+            isAuthenticated() ? (
+              <Layout>
+                <Products />
+              </Layout>
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+
         {/* Ajouter d'autres routes ici si nécessaire */}
       </Routes>
     </Router>

@@ -3,7 +3,6 @@ import { Container, Row, Col, Nav, Button } from "react-bootstrap";
 import { useNavigate } from "react-router";
 import { NavLink } from "react-router-dom";
 
-
 import { logout } from "../services/authService";
 
 const Layout = ({ children }) => {
@@ -27,6 +26,9 @@ const Layout = ({ children }) => {
             </NavLink>
             <NavLink to="/clients" className="nav-link">
               Clients
+            </NavLink>
+            <NavLink to="/categories" className="nav-link">
+              Catégories
             </NavLink>
             <NavLink to="/products" className="nav-link">
               Produits
