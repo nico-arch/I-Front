@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { Table, Button, Modal, Form, Alert, Pagination } from "react-bootstrap";
+import React, { useState, useEffect } from "react";
+import { Modal, Button, Table, Form, Alert, Pagination } from "react-bootstrap";
 import {
   getOrders,
   addOrder,
   editOrder,
-  completeOrder,
   cancelOrder,
-  deleteOrder,
+  completeOrder,
 } from "../services/orderService";
 import { getSuppliers } from "../services/supplierService";
 import { getProducts } from "../services/productService";
@@ -15,152 +14,152 @@ const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [products, setProducts] = useState([]);
+  const [selectedProducts, setSelectedProducts] = useState([]);
+  const [searchSupplier, setSearchSupplier] = useState("");
+  const [searchProduct, setSearchProduct] = useState("");
+  const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [currentOrder, setCurrentOrder] = useState(null);
-  const [formData, setFormData] = useState({
-    supplierId: "",
-    products: [],
-    status: "pending",
-  });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const ordersData = await getOrders();
-        const suppliersData = await getSuppliers();
-        const productsData = await getProducts();
-        setOrders(ordersData);
-        setSuppliers(suppliersData);
-        setProducts(productsData);
-      } catch (err) {
-        setError(err.message);
-      }
-    };
-    fetchData();
+    fetchOrders();
+    fetchSuppliers();
+    fetchProducts();
   }, []);
+
+  const fetchOrders = async () => {
+    try {
+      const ordersData = await getOrders();
+      setOrders(ordersData);
+    } catch (err) {
+      setError("Erreur lors du chargement des commandes.");
+    }
+  };
+
+  const fetchSuppliers = async () => {
+    try {
+      const suppliersData = await getSuppliers();
+      setSuppliers(suppliersData);
+    } catch (err) {
+      setError("Erreur lors du chargement des fournisseurs.");
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const productsData = await getProducts();
+      setProducts(productsData);
+    } catch (err) {
+      setError("Erreur lors du chargement des produits.");
+    }
+  };
 
   const handleShowModal = (order = null) => {
     setCurrentOrder(order);
-    setFormData(
-      order
-        ? {
-            ...order,
-            supplierId: order.supplier._id,
-            products: order.products.map((p) => ({
-              productId: p.product._id,
-              quantity: p.quantity,
-            })),
-          }
-        : { supplierId: "", products: [], status: "pending" },
-    );
+    setSelectedProducts(order ? order.products : []);
+    setSelectedSupplier(order ? order.supplier : null);
     setShowModal(true);
-    setError("");
-    setSuccess("");
   };
 
   const handleCloseModal = () => setShowModal(false);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+  const handleAddProduct = (product) => {
+    if (selectedProducts.find((p) => p.productId === product._id)) {
+      setError("Ce produit a déjà été ajouté.");
+      return;
+    }
+    setSelectedProducts([
+      ...selectedProducts,
+      {
+        productId: product._id,
+        productName: product.productName,
+        quantity: 1,
+        price: product.priceUSD,
+      },
+    ]);
   };
 
-  const handleProductChange = (index, field, value) => {
-    const updatedProducts = [...formData.products];
+  const handleRemoveProduct = (productId) => {
+    setSelectedProducts(
+      selectedProducts.filter((p) => p.productId !== productId),
+    );
+  };
+
+  const handleChangeProduct = (index, field, value) => {
+    const updatedProducts = [...selectedProducts];
     updatedProducts[index][field] = value;
-    setFormData({ ...formData, products: updatedProducts });
-  };
-
-  const addProductRow = () => {
-    setFormData({
-      ...formData,
-      products: [...formData.products, { productId: "", quantity: 1 }],
-    });
-  };
-
-  const removeProductRow = (index) => {
-    const updatedProducts = formData.products.filter((_, i) => i !== index);
-    setFormData({ ...formData, products: updatedProducts });
+    setSelectedProducts(updatedProducts);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!selectedSupplier) {
+      setError("Veuillez sélectionner un fournisseur.");
+      return;
+    }
+    if (selectedProducts.length === 0) {
+      setError("Veuillez ajouter au moins un produit.");
+      return;
+    }
+
+    const orderData = {
+      supplierId: selectedSupplier._id,
+      products: selectedProducts,
+    };
+
     try {
       if (currentOrder) {
-        await editOrder(currentOrder._id, formData);
-        setSuccess("Commande modifiée avec succès");
+        await editOrder(currentOrder._id, orderData);
+        setSuccess("Commande modifiée avec succès.");
       } else {
-        await addOrder(formData);
-        setSuccess("Commande ajoutée avec succès");
+        await addOrder(orderData);
+        setSuccess("Commande créée avec succès.");
       }
-      setShowModal(false);
-      window.location.reload();
+      fetchOrders();
+      handleCloseModal();
     } catch (err) {
-      setError(err.message);
+      setError("Erreur lors de la création/modification de la commande.");
     }
   };
 
-  const handleComplete = async (id) => {
-    if (window.confirm("Êtes-vous sûr de vouloir compléter cette commande ?")) {
-      try {
-        await completeOrder(id);
-        setSuccess("Commande complétée avec succès");
-        window.location.reload();
-      } catch (err) {
-        setError(err.message);
-      }
+  const handleCancelOrder = async (orderId) => {
+    try {
+      await cancelOrder(orderId);
+      setSuccess("Commande annulée avec succès.");
+      fetchOrders();
+    } catch (err) {
+      setError("Erreur lors de l'annulation de la commande.");
     }
   };
 
-  const handleCancel = async (id) => {
-    if (window.confirm("Êtes-vous sûr de vouloir annuler cette commande ?")) {
-      try {
-        await cancelOrder(id);
-        setSuccess("Commande annulée avec succès");
-        window.location.reload();
-      } catch (err) {
-        setError(err.message);
-      }
+  const handleCompleteOrder = async (orderId) => {
+    try {
+      await completeOrder(orderId);
+      setSuccess("Commande complétée avec succès.");
+      fetchOrders();
+    } catch (err) {
+      setError("Erreur lors de la finalisation de la commande.");
     }
   };
-
-  const handleDelete = async (id) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer cette commande ?")) {
-      try {
-        await deleteOrder(id);
-        setSuccess("Commande supprimée avec succès");
-        window.location.reload();
-      } catch (err) {
-        setError(err.message);
-      }
-    }
-  };
-
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
     <div>
       <h2>Gestion des commandes</h2>
       {error && <Alert variant="danger">{error}</Alert>}
       {success && <Alert variant="success">{success}</Alert>}
+      <Button variant="primary" onClick={() => handleShowModal()}>
+        Créer une commande
+      </Button>
 
-      <div className="d-flex justify-content-between mb-3">
-        <Button variant="primary" onClick={() => handleShowModal()}>
-          Ajouter une commande
-        </Button>
-      </div>
-
-      <Table striped bordered hover>
+      <Table striped bordered hover className="mt-3">
         <thead>
           <tr>
             <th>Fournisseur</th>
-            <th>Produits</th>
-            <th>Montant total</th>
+            <th>Date</th>
             <th>Statut</th>
+            <th>Total</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -168,136 +167,150 @@ const Orders = () => {
           {orders.map((order) => (
             <tr key={order._id}>
               <td>{order.supplier.companyName}</td>
-              <td>
-                {order.products.map((p) => (
-                  <div key={p.product._id}>
-                    {p.product.productName} - {p.quantity}
-                  </div>
-                ))}
-              </td>
-              <td>{order.totalAmount}</td>
+              <td>{new Date(order.orderDate).toLocaleDateString()}</td>
               <td>{order.status}</td>
+              <td>{order.totalAmount} USD</td>
               <td>
-                {order.status === "pending" && (
-                  <>
-                    <Button
-                      variant="warning"
-                      onClick={() => handleShowModal(order)}
-                    >
-                      Modifier
-                    </Button>{" "}
-                    <Button
-                      variant="success"
-                      onClick={() => handleComplete(order._id)}
-                    >
-                      Compléter
-                    </Button>{" "}
-                    <Button
-                      variant="danger"
-                      onClick={() => handleCancel(order._id)}
-                    >
-                      Annuler
-                    </Button>{" "}
-                    <Button
-                      variant="dark"
-                      onClick={() => handleDelete(order._id)}
-                    >
-                      Supprimer
-                    </Button>
-                  </>
-                )}
-                {order.status === "completed" && <span>Complétée</span>}
-                {order.status === "canceled" && <span>Annulée</span>}
+                <Button
+                  variant="warning"
+                  onClick={() => handleShowModal(order)}
+                >
+                  Modifier
+                </Button>{" "}
+                <Button
+                  variant="danger"
+                  onClick={() => handleCancelOrder(order._id)}
+                >
+                  Annuler
+                </Button>{" "}
+                <Button
+                  variant="success"
+                  onClick={() => handleCompleteOrder(order._id)}
+                >
+                  Compléter
+                </Button>
               </td>
             </tr>
           ))}
         </tbody>
       </Table>
 
-      <Pagination className="mt-3">
-        {Array.from({ length: Math.ceil(orders.length / itemsPerPage) }).map(
-          (_, index) => (
-            <Pagination.Item
-              key={index + 1}
-              active={index + 1 === currentPage}
-              onClick={() => paginate(index + 1)}
-            >
-              {index + 1}
-            </Pagination.Item>
-          ),
-        )}
-      </Pagination>
-
+      {/* Modal pour ajouter/modifier une commande */}
       <Modal show={showModal} onHide={handleCloseModal}>
         <Modal.Header closeButton>
           <Modal.Title>
-            {currentOrder ? "Modifier" : "Ajouter"} une commande
+            {currentOrder ? "Modifier" : "Créer"} une commande
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form onSubmit={handleSubmit}>
-            <Form.Group controlId="supplierId">
-              <Form.Label>Fournisseur</Form.Label>
+            <Form.Group controlId="searchSupplier">
+              <Form.Label>Rechercher un fournisseur</Form.Label>
               <Form.Control
-                as="select"
-                name="supplierId"
-                value={formData.supplierId}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Sélectionnez un fournisseur</option>
-                {suppliers.map((supplier) => (
-                  <option key={supplier._id} value={supplier._id}>
-                    {supplier.companyName}
-                  </option>
-                ))}
-              </Form.Control>
+                type="text"
+                placeholder="Nom du fournisseur"
+                value={searchSupplier}
+                onChange={(e) => setSearchSupplier(e.target.value)}
+              />
             </Form.Group>
 
-            <Form.Group controlId="products" className="mt-3">
-              <Form.Label>Produits</Form.Label>
-              {formData.products.map((product, index) => (
-                <div key={index} className="d-flex align-items-center mb-2">
-                  <Form.Control
-                    as="select"
-                    value={product.productId}
-                    onChange={(e) =>
-                      handleProductChange(index, "productId", e.target.value)
-                    }
-                    required
+            <div className="mt-3">
+              {suppliers
+                .filter((supplier) =>
+                  supplier.companyName
+                    .toLowerCase()
+                    .includes(searchSupplier.toLowerCase()),
+                )
+                .map((supplier) => (
+                  <div
+                    key={supplier._id}
+                    className="d-flex justify-content-between"
                   >
-                    <option value="">Sélectionnez un produit</option>
-                    {products.map((p) => (
-                      <option key={p._id} value={p._id}>
-                        {p.productName}
-                      </option>
-                    ))}
-                  </Form.Control>
+                    <span>{supplier.companyName}</span>
+                    <Button
+                      variant="outline-primary"
+                      size="sm"
+                      onClick={() => setSelectedSupplier(supplier)}
+                    >
+                      Sélectionner
+                    </Button>
+                  </div>
+                ))}
+            </div>
+
+            <Form.Group controlId="searchProduct" className="mt-4">
+              <Form.Label>Rechercher des produits</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Nom du produit"
+                value={searchProduct}
+                onChange={(e) => setSearchProduct(e.target.value)}
+              />
+            </Form.Group>
+
+            <div className="mt-3">
+              {products
+                .filter((product) =>
+                  product.productName
+                    .toLowerCase()
+                    .includes(searchProduct.toLowerCase()),
+                )
+                .map((product) => (
+                  <div
+                    key={product._id}
+                    className="d-flex justify-content-between"
+                  >
+                    <span>{product.productName}</span>
+                    <Button
+                      variant="outline-primary"
+                      size="sm"
+                      onClick={() => handleAddProduct(product)}
+                    >
+                      Ajouter
+                    </Button>
+                  </div>
+                ))}
+            </div>
+
+            <div className="mt-4">
+              <h5>Produits sélectionnés</h5>
+              {selectedProducts.map((product, index) => (
+                <div
+                  key={product.productId}
+                  className="d-flex justify-content-between"
+                >
+                  <span>{product.productName}</span>
                   <Form.Control
                     type="number"
                     min="1"
                     value={product.quantity}
                     onChange={(e) =>
-                      handleProductChange(index, "quantity", e.target.value)
+                      handleChangeProduct(index, "quantity", e.target.value)
                     }
-                    className="mx-2"
-                    required
+                    style={{ width: "70px" }}
+                  />
+                  <Form.Control
+                    type="number"
+                    min="0"
+                    value={product.price}
+                    onChange={(e) =>
+                      handleChangeProduct(index, "price", e.target.value)
+                    }
+                    style={{ width: "100px" }}
                   />
                   <Button
-                    variant="danger"
-                    onClick={() => removeProductRow(index)}
+                    variant="outline-danger"
+                    size="sm"
+                    onClick={() => handleRemoveProduct(product.productId)}
                   >
-                    -
+                    Retirer
                   </Button>
                 </div>
               ))}
-              <Button variant="secondary" onClick={addProductRow}>
-                Ajouter un produit
-              </Button>
-            </Form.Group>
+            </div>
 
-            <Button variant="primary" type="submit" className="mt-3">
-              {currentOrder ? "Modifier" : "Ajouter"}
+            <Button variant="primary" type="submit" className="mt-4">
+              {currentOrder ? "Modifier" : "Créer"} la commande
             </Button>
           </Form>
         </Modal.Body>
