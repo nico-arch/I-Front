@@ -12,6 +12,9 @@ import Clients from "./pages/Clients";
 import Login from "./pages/Login";
 import Categories from "./pages/Categories"; // Importer le composant Categories
 import Products from "./pages/Products"; // Importer le composant Products
+import ExchangeRate from "./pages/ExchangeRate"; // Importer le composant ExchangeRate
+import Suppliers from "./pages/Suppliers"; // Importer le composant Suppliers
+import Orders from "./pages/Orders"; // Importer le composant Orders
 
 const App = () => {
   // Fonction pour vérifier si l'utilisateur est authentifié
@@ -78,6 +81,45 @@ const App = () => {
             isAuthenticated() ? (
               <Layout>
                 <Products />
+              </Layout>
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+
+        <Route
+          path="/exchange-rate"
+          element={
+            isAuthenticated() ? (
+              <Layout>
+                <ExchangeRate />
+              </Layout>
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+
+        <Route
+          path="/suppliers"
+          element={
+            isAuthenticated() ? (
+              <Layout>
+                <Suppliers />
+              </Layout>
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+
+        <Route
+          path="/orders"
+          element={
+            isAuthenticated() ? (
+              <Layout>
+                <Orders />
               </Layout>
             ) : (
               <Navigate to="/" />

@@ -1,0 +1,69 @@
+import React, { useState, useEffect } from "react";
+import { Form, Button, Alert } from "react-bootstrap";
+import {
+  getCurrentRate,
+  updateExchangeRate,
+} from "../services/exchangeRateService";
+
+const ExchangeRate = () => {
+  const [rate, setRate] = useState(0);
+  const [newRate, setNewRate] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  useEffect(() => {
+    const fetchRate = async () => {
+      try {
+        const { currentRate } = await getCurrentRate();
+        setRate(currentRate);
+      } catch (err) {
+        setError("Impossible de récupérer le taux de change.");
+      }
+    };
+    fetchRate();
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!newRate || isNaN(newRate) || newRate <= 0) {
+      setError("Veuillez entrer un taux valide.");
+      return;
+    }
+    try {
+      await updateExchangeRate(Number(newRate));
+      setSuccess("Taux de change mis à jour avec succès.");
+      setRate(newRate);
+      setNewRate("");
+    } catch (err) {
+      setError("Erreur lors de la mise à jour du taux de change.");
+    }
+  };
+
+  return (
+    <div>
+      <h2>Gestion du taux de change</h2>
+      {error && <Alert variant="danger">{error}</Alert>}
+      {success && <Alert variant="success">{success}</Alert>}
+      <Form onSubmit={handleSubmit}>
+        <Form.Group controlId="currentRate">
+          <Form.Label>Taux actuel (USD -> HTG)</Form.Label>
+          <Form.Control type="text" value={rate} readOnly />
+        </Form.Group>
+        <Form.Group controlId="newRate" className="mt-3">
+          <Form.Label>Nouveau taux</Form.Label>
+          <Form.Control
+            type="number"
+            placeholder="Entrer le nouveau taux"
+            value={newRate}
+            onChange={(e) => setNewRate(e.target.value)}
+          />
+        </Form.Group>
+        <Button variant="primary" type="submit" className="mt-3">
+          Mettre à jour
+        </Button>
+      </Form>
+    </div>
+  );
+};
+
+export default ExchangeRate;

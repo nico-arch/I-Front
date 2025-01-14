@@ -33,11 +33,17 @@ const Layout = ({ children }) => {
             <NavLink to="/products" className="nav-link">
               Produits
             </NavLink>
+            <NavLink to="/exchange-rate" className="nav-link">
+              Taux de change
+            </NavLink>
             <NavLink to="/sales" className="nav-link">
               Ventes
             </NavLink>
             <NavLink to="/services" className="nav-link">
               Services
+            </NavLink>
+            <NavLink to="/suppliers" className="nav-link">
+              Fournisseurs
             </NavLink>
             <NavLink to="/orders" className="nav-link">
               Commandes

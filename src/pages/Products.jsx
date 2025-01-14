@@ -23,6 +23,7 @@ const Products = () => {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [showOutOfStock, setShowOutOfStock] = useState(false);
   const itemsPerPage = 5;
 
   // Charger les produits et les catégories au montage du composant
@@ -120,10 +121,15 @@ const Products = () => {
     );
   });
 
+  // Filtrer les produits out of stock si nécessaire
+  const displayedProducts = showOutOfStock
+    ? filteredProducts.filter((product) => product.stockQuantity === 0)
+    : filteredProducts;
+
   // Pagination : Calculer les produits à afficher pour la page courante
   const indexOfLastProduct = currentPage * itemsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - itemsPerPage;
-  const currentProducts = filteredProducts.slice(
+  const currentProducts = displayedProducts.slice(
     indexOfFirstProduct,
     indexOfLastProduct,
   );
@@ -131,15 +137,45 @@ const Products = () => {
   // Gérer le changement de page
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+  // Imprimer la liste des produits out of stock
+  const handlePrintOutOfStock = () => {
+    const outOfStockProducts = products.filter(
+      (product) => product.stockQuantity === 0,
+    );
+    const printableContent = outOfStockProducts
+      .map(
+        (product) =>
+          `Nom : ${product.productName}, Description : ${product.description}, Prix (USD) : ${product.priceUSD}`,
+      )
+      .join("\n");
+    const newWindow = window.open();
+    newWindow.document.write(`<pre>${printableContent}</pre>`);
+    newWindow.print();
+    newWindow.close();
+  };
+
   return (
     <div>
       <h2>Gestion des produits</h2>
       {error && <Alert variant="danger">{error}</Alert>}
 
       <div className="d-flex justify-content-between mb-3">
-        <Button variant="primary" onClick={() => handleShowModal()}>
-          Ajouter un produit
-        </Button>
+        <div>
+          <Button variant="primary" onClick={() => handleShowModal()}>
+            Ajouter un produit
+          </Button>{" "}
+          <Button
+            variant="secondary"
+            onClick={() => setShowOutOfStock(!showOutOfStock)}
+          >
+            {showOutOfStock
+              ? "Afficher tous les produits"
+              : "Produits en rupture de stock"}
+          </Button>{" "}
+          <Button variant="info" onClick={handlePrintOutOfStock}>
+            Imprimer les produits en rupture de stock
+          </Button>
+        </div>
         <Form.Control
           type="text"
           placeholder="Rechercher un produit..."
@@ -156,6 +192,7 @@ const Products = () => {
             <th>Description</th>
             <th>Prix (USD)</th>
             <th>Stock</th>
+            <th>Catégories</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -166,6 +203,9 @@ const Products = () => {
               <td>{product.description}</td>
               <td>{product.priceUSD}</td>
               <td>{product.stockQuantity}</td>
+              <td>
+                {product.categories.map((category) => category.name).join(", ")}
+              </td>
               <td>
                 <Button
                   variant="warning"
@@ -188,7 +228,7 @@ const Products = () => {
       {/* Pagination */}
       <Pagination className="mt-3">
         {Array.from({
-          length: Math.ceil(filteredProducts.length / itemsPerPage),
+          length: Math.ceil(displayedProducts.length / itemsPerPage),
         }).map((_, index) => (
           <Pagination.Item
             key={index + 1}
