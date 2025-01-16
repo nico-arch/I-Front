@@ -63,6 +63,12 @@ const Orders = () => {
   };
 
   const handleShowModal = (order = null) => {
+    if (order && (order.status === "complété" || order.status === "annulé")) {
+      setError(
+        "Vous ne pouvez pas modifier une commande complétée ou annulée.",
+      );
+      return;
+    }
     setCurrentOrder(order);
     setSelectedProducts(
       order
@@ -135,7 +141,9 @@ const Orders = () => {
       fetchOrders();
       handleCloseModal();
     } catch (err) {
-      setError("Erreur lors de la création/modification de la commande.");
+      setError(
+        "Erreur lors de la création/modification de la commande. " + err,
+      );
     }
   };
 
@@ -219,9 +227,11 @@ const Orders = () => {
             <th>Date</th>
             <th>Statut</th>
             <th>Total</th>
+
             <th>Actions</th>
           </tr>
         </thead>
+
         <tbody>
           {currentOrders.map((order) => (
             <tr key={order._id}>
@@ -229,10 +239,14 @@ const Orders = () => {
               <td>{new Date(order.orderDate).toLocaleDateString()}</td>
               <td>{order.status}</td>
               <td>{order.totalAmount} USD</td>
+
               <td>
                 <Button
                   variant="warning"
                   onClick={() => handleShowModal(order)}
+                  disabled={
+                    order.status === "complété" || order.status === "annulé"
+                  }
                 >
                   Modifier
                 </Button>{" "}
@@ -251,12 +265,18 @@ const Orders = () => {
                 <Button
                   variant="success"
                   onClick={() => handleCompleteOrder(order._id)}
+                  disabled={
+                    order.status === "complété" || order.status === "annulé"
+                  }
                 >
                   Compléter
                 </Button>{" "}
                 <Button
                   variant="outline-danger"
                   onClick={() => handleCancelOrder(order._id)}
+                  disabled={
+                    order.status === "complété" || order.status === "annulé"
+                  }
                 >
                   Annuler
                 </Button>
