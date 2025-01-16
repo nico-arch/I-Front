@@ -15,13 +15,16 @@ const Orders = () => {
   const [suppliers, setSuppliers] = useState([]);
   const [products, setProducts] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState([]);
+  const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [searchSupplier, setSearchSupplier] = useState("");
   const [searchProduct, setSearchProduct] = useState("");
-  const [selectedSupplier, setSelectedSupplier] = useState(null);
+  const [searchOrder, setSearchOrder] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [currentOrder, setCurrentOrder] = useState(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // Nombre de commandes par page
 
   useEffect(() => {
     fetchOrders();
@@ -58,7 +61,16 @@ const Orders = () => {
 
   const handleShowModal = (order = null) => {
     setCurrentOrder(order);
-    setSelectedProducts(order ? order.products : []);
+    setSelectedProducts(
+      order
+        ? order.products.map((p) => ({
+            productId: p.product._id,
+            productName: p.product.productName,
+            quantity: p.quantity,
+            price: p.price,
+          }))
+        : [],
+    );
     setSelectedSupplier(order ? order.supplier : null);
     setShowModal(true);
   };
@@ -144,16 +156,44 @@ const Orders = () => {
     }
   };
 
+  const filteredOrders = orders.filter((order) => {
+    const supplierName = order.supplier.companyName.toLowerCase();
+    const status = order.status.toLowerCase();
+    const totalAmount = order.totalAmount.toString();
+    const searchLower = searchOrder.toLowerCase();
+    return (
+      supplierName.includes(searchLower) ||
+      status.includes(searchLower) ||
+      totalAmount.includes(searchLower)
+    );
+  });
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   return (
     <div>
       <h2>Gestion des commandes</h2>
       {error && <Alert variant="danger">{error}</Alert>}
       {success && <Alert variant="success">{success}</Alert>}
-      <Button variant="primary" onClick={() => handleShowModal()}>
-        Créer une commande
-      </Button>
 
-      <Table striped bordered hover className="mt-3">
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <Button variant="primary" onClick={() => handleShowModal()}>
+          Créer une commande
+        </Button>
+        <Form.Control
+          type="text"
+          placeholder="Rechercher une commande..."
+          value={searchOrder}
+          onChange={(e) => setSearchOrder(e.target.value)}
+          style={{ width: "300px" }}
+        />
+      </div>
+
+      <Table striped bordered hover>
         <thead>
           <tr>
             <th>Fournisseur</th>
@@ -164,7 +204,7 @@ const Orders = () => {
           </tr>
         </thead>
         <tbody>
-          {orders.map((order) => (
+          {currentOrders.map((order) => (
             <tr key={order._id}>
               <td>{order.supplier.companyName}</td>
               <td>{new Date(order.orderDate).toLocaleDateString()}</td>
@@ -195,8 +235,22 @@ const Orders = () => {
         </tbody>
       </Table>
 
+      <Pagination className="mt-3">
+        {Array.from({
+          length: Math.ceil(filteredOrders.length / itemsPerPage),
+        }).map((_, index) => (
+          <Pagination.Item
+            key={index + 1}
+            active={index + 1 === currentPage}
+            onClick={() => paginate(index + 1)}
+          >
+            {index + 1}
+          </Pagination.Item>
+        ))}
+      </Pagination>
+
       {/* Modal pour ajouter/modifier une commande */}
-      <Modal show={showModal} onHide={handleCloseModal}>
+      <Modal show={showModal} onHide={handleCloseModal} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>
             {currentOrder ? "Modifier" : "Créer"} une commande
@@ -204,112 +258,144 @@ const Orders = () => {
         </Modal.Header>
         <Modal.Body>
           <Form onSubmit={handleSubmit}>
-            <Form.Group controlId="searchSupplier">
-              <Form.Label>Rechercher un fournisseur</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Nom du fournisseur"
-                value={searchSupplier}
-                onChange={(e) => setSearchSupplier(e.target.value)}
-              />
-            </Form.Group>
-
-            <div className="mt-3">
-              {suppliers
-                .filter((supplier) =>
-                  supplier.companyName
-                    .toLowerCase()
-                    .includes(searchSupplier.toLowerCase()),
-                )
-                .map((supplier) => (
-                  <div
-                    key={supplier._id}
-                    className="d-flex justify-content-between"
-                  >
-                    <span>{supplier.companyName}</span>
-                    <Button
-                      variant="outline-primary"
-                      size="sm"
-                      onClick={() => setSelectedSupplier(supplier)}
-                    >
-                      Sélectionner
-                    </Button>
-                  </div>
-                ))}
-            </div>
-
-            <Form.Group controlId="searchProduct" className="mt-4">
-              <Form.Label>Rechercher des produits</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Nom du produit"
-                value={searchProduct}
-                onChange={(e) => setSearchProduct(e.target.value)}
-              />
-            </Form.Group>
-
-            <div className="mt-3">
-              {products
-                .filter((product) =>
-                  product.productName
-                    .toLowerCase()
-                    .includes(searchProduct.toLowerCase()),
-                )
-                .map((product) => (
-                  <div
-                    key={product._id}
-                    className="d-flex justify-content-between"
-                  >
-                    <span>{product.productName}</span>
-                    <Button
-                      variant="outline-primary"
-                      size="sm"
-                      onClick={() => handleAddProduct(product)}
-                    >
-                      Ajouter
-                    </Button>
-                  </div>
-                ))}
-            </div>
-
-            <div className="mt-4">
-              <h5>Produits sélectionnés</h5>
-              {selectedProducts.map((product, index) => (
+            <div className="d-flex mb-3">
+              <div className="me-4" style={{ width: "50%" }}>
+                <h5>Fournisseurs</h5>
+                <Form.Control
+                  type="text"
+                  placeholder="Rechercher un fournisseur"
+                  value={searchSupplier}
+                  onChange={(e) => setSearchSupplier(e.target.value)}
+                />
                 <div
-                  key={product.productId}
-                  className="d-flex justify-content-between"
+                  style={{
+                    maxHeight: "200px",
+                    overflowY: "scroll",
+                    marginTop: "10px",
+                  }}
                 >
-                  <span>{product.productName}</span>
-                  <Form.Control
-                    type="number"
-                    min="1"
-                    value={product.quantity}
-                    onChange={(e) =>
-                      handleChangeProduct(index, "quantity", e.target.value)
-                    }
-                    style={{ width: "70px" }}
-                  />
-                  <Form.Control
-                    type="number"
-                    min="0"
-                    value={product.price}
-                    onChange={(e) =>
-                      handleChangeProduct(index, "price", e.target.value)
-                    }
-                    style={{ width: "100px" }}
-                  />
-                  <Button
-                    variant="outline-danger"
-                    size="sm"
-                    onClick={() => handleRemoveProduct(product.productId)}
-                  >
-                    Retirer
-                  </Button>
+                  {suppliers
+                    .filter((supplier) =>
+                      supplier.companyName
+                        .toLowerCase()
+                        .includes(searchSupplier.toLowerCase()),
+                    )
+                    .map((supplier) => (
+                      <div
+                        key={supplier._id}
+                        className="d-flex justify-content-between align-items-center"
+                      >
+                        <span>{supplier.companyName}</span>
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          onClick={() => setSelectedSupplier(supplier)}
+                        >
+                          Sélectionner
+                        </Button>
+                      </div>
+                    ))}
                 </div>
-              ))}
+                {selectedSupplier && (
+                  <div className="mt-2">
+                    <strong>Fournisseur sélectionné:</strong>{" "}
+                    {selectedSupplier.companyName}
+                  </div>
+                )}
+              </div>
+
+              <div style={{ width: "50%" }}>
+                <h5>Produits</h5>
+                <Form.Control
+                  type="text"
+                  placeholder="Rechercher des produits"
+                  value={searchProduct}
+                  onChange={(e) => setSearchProduct(e.target.value)}
+                />
+                <div
+                  style={{
+                    maxHeight: "200px",
+                    overflowY: "scroll",
+                    marginTop: "10px",
+                  }}
+                >
+                  {products
+                    .filter((product) =>
+                      product.productName
+                        .toLowerCase()
+                        .includes(searchProduct.toLowerCase()),
+                    )
+                    .map((product) => (
+                      <div
+                        key={product._id}
+                        className="d-flex justify-content-between align-items-center"
+                      >
+                        <span>
+                          {product.productName} - Stock: {product.stockQuantity}{" "}
+                          - Prix: {product.priceUSD} USD
+                        </span>
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          onClick={() => handleAddProduct(product)}
+                        >
+                          Ajouter
+                        </Button>
+                      </div>
+                    ))}
+                </div>
+              </div>
             </div>
 
-            <Button variant="primary" type="submit" className="mt-4">
+            <h5>Produits sélectionnés</h5>
+            <Table striped bordered>
+              <thead>
+                <tr>
+                  <th>Nom</th>
+                  <th>Quantité</th>
+                  <th>Prix (USD)</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {selectedProducts.map((product, index) => (
+                  <tr key={`${product.productId}-${index}`}>
+                    <td>{product.productName}</td>
+                    <td>
+                      <Form.Control
+                        type="number"
+                        min="1"
+                        value={product.quantity}
+                        onChange={(e) =>
+                          handleChangeProduct(index, "quantity", e.target.value)
+                        }
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="number"
+                        min="0"
+                        value={product.price}
+                        onChange={(e) =>
+                          handleChangeProduct(index, "price", e.target.value)
+                        }
+                      />
+                    </td>
+                    <td>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => handleRemoveProduct(product.productId)}
+                      >
+                        Retirer
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+
+            <Button variant="primary" type="submit" className="mt-3">
               {currentOrder ? "Modifier" : "Créer"} la commande
             </Button>
           </Form>
