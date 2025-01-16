@@ -15,6 +15,7 @@ import Products from "./pages/Products"; // Importer le composant Products
 import ExchangeRate from "./pages/ExchangeRate"; // Importer le composant ExchangeRate
 import Suppliers from "./pages/Suppliers"; // Importer le composant Suppliers
 import Orders from "./pages/Orders"; // Importer le composant Orders
+import OrderPrint from "./pages/OrderPrint"; // Importer le composant OrderPrint
 
 const App = () => {
   // Fonction pour vérifier si l'utilisateur est authentifié
@@ -125,6 +126,11 @@ const App = () => {
               <Navigate to="/" />
             )
           }
+        />
+
+        <Route
+          path="/orders/print/:id"
+          element={isAuthenticated() ? <OrderPrint /> : <Navigate to="/" />}
         />
 
         {/* Ajouter d'autres routes ici si nécessaire */}

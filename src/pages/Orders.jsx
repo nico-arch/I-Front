@@ -6,9 +6,11 @@ import {
   editOrder,
   cancelOrder,
   completeOrder,
+  deleteOrder,
 } from "../services/orderService";
 import { getSuppliers } from "../services/supplierService";
 import { getProducts } from "../services/productService";
+import { useNavigate } from "react-router-dom";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -25,6 +27,7 @@ const Orders = () => {
   const [success, setSuccess] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5; // Nombre de commandes par page
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchOrders();
@@ -156,6 +159,22 @@ const Orders = () => {
     }
   };
 
+  const handleDeleteOrder = async (orderId) => {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer cette commande ?")) {
+      try {
+        await deleteOrder(orderId);
+        setSuccess("Commande supprimée avec succès.");
+        fetchOrders();
+      } catch (err) {
+        setError("Erreur lors de la suppression de la commande.");
+      }
+    }
+  };
+
+  const handlePrintOrder = (orderId) => {
+    navigate(`/orders/print/${orderId}`);
+  };
+
   const filteredOrders = orders.filter((order) => {
     const supplierName = order.supplier.companyName.toLowerCase();
     const status = order.status.toLowerCase();
@@ -219,15 +238,27 @@ const Orders = () => {
                 </Button>{" "}
                 <Button
                   variant="danger"
-                  onClick={() => handleCancelOrder(order._id)}
+                  onClick={() => handleDeleteOrder(order._id)}
                 >
-                  Annuler
+                  Supprimer
+                </Button>{" "}
+                <Button
+                  variant="secondary"
+                  onClick={() => handlePrintOrder(order._id)}
+                >
+                  Imprimer
                 </Button>{" "}
                 <Button
                   variant="success"
                   onClick={() => handleCompleteOrder(order._id)}
                 >
                   Compléter
+                </Button>{" "}
+                <Button
+                  variant="outline-danger"
+                  onClick={() => handleCancelOrder(order._id)}
+                >
+                  Annuler
                 </Button>
               </td>
             </tr>

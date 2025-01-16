@@ -88,3 +88,13 @@ export const deleteOrder = async (id) => {
     handleRequestError(error);
   }
 };
+
+// Récupérer une commande par ID
+export const getOrderById = async (id) => {
+  try {
+    const response = await axios.get(`${API_ENDPOINT}/${id}`, { headers });
+    return response.data;
+  } catch (error) {
+    handleRequestError(error);
+  }
+};
