@@ -15,8 +15,11 @@ const OrderPrint = () => {
     try {
       const orderData = await getOrderById(id);
       setOrder(orderData);
+      //console.log("Supplier email :" + order.supplier.email);
     } catch (err) {
-      console.error("Erreur lors de la récupération de la commande.");
+      console.error(
+        "Erreur lors de la récupération de la commande. error:" + err,
+      );
     }
   };
 
@@ -29,10 +32,10 @@ const OrderPrint = () => {
         <strong>Fournisseur:</strong> {order.supplier.companyName}
       </p>
       <p>
-        <strong>Email:</strong> {order.supplier.email}
+        <strong>Email:</strong> {order.supplier.emails[0]}
       </p>
       <p>
-        <strong>Adresse:</strong> {order.supplier.address}
+        <strong>Adresse:</strong> {order.supplier.addresses[0]}
       </p>
       <p>
         <strong>Date:</strong> {new Date(order.orderDate).toLocaleDateString()}

@@ -187,11 +187,13 @@ const Orders = () => {
     const supplierName = order.supplier.companyName.toLowerCase();
     const status = order.status.toLowerCase();
     const totalAmount = order.totalAmount.toString();
+    const orderId = order._id.toLowerCase(); // Inclure l'ID de la commande dans le filtre
     const searchLower = searchOrder.toLowerCase();
     return (
       supplierName.includes(searchLower) ||
       status.includes(searchLower) ||
-      totalAmount.includes(searchLower)
+      totalAmount.includes(searchLower) ||
+      orderId.includes(searchLower) // Rechercher par ID de la commande
     );
   });
 
@@ -223,6 +225,7 @@ const Orders = () => {
       <Table striped bordered hover>
         <thead>
           <tr>
+            <th>ID</th>
             <th>Fournisseur</th>
             <th>Date</th>
             <th>Statut</th>
@@ -235,6 +238,7 @@ const Orders = () => {
         <tbody>
           {currentOrders.map((order) => (
             <tr key={order._id}>
+              <td>{order._id}</td>
               <td>{order.supplier.companyName}</td>
               <td>{new Date(order.orderDate).toLocaleDateString()}</td>
               <td>{order.status}</td>
