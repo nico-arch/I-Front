@@ -19,6 +19,13 @@ import OrderPrint from "./pages/OrderPrint"; // Importer le composant OrderPrint
 
 const App = () => {
   // Fonction pour vérifier si l'utilisateur est authentifié
+  const userId = localStorage.getItem("userId");
+  if (userId) {
+    console.log("Utilisateur connecté avec ID :", userId);
+  } else {
+    console.log("Aucun utilisateur connecté.");
+  }
+
   const isAuthenticated = () => {
     return localStorage.getItem("token") !== null;
   };

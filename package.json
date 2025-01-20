@@ -25,6 +25,7 @@
     "axios": "^1.7.2",
     "bootstrap": "^5.3.3",
     "electron": "^33.2.1",
+    "jwt-decode": "^4.0.0",
     "react-bootstrap": "^2.10.7",
     "react-router": "^6.28.1",
     "react-router-dom": "^6.28.1"
