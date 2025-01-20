@@ -97,11 +97,45 @@ const Orders = () => {
         productId: product._id,
         productName: product.productName,
         quantity: 1,
-        price: product.priceUSD,
+        purchasePrice: product.purchasePrice || 0, // Par défaut
+        salePrice: product.salePrice || product.priceUSD, // Par défaut
       },
     ]);
   };
 
+  /*const handleAddProduct = (product) => {
+    if (selectedProducts.find((p) => p.productId === product._id)) {
+      setError("Ce produit a déjà été ajouté.");
+      return;
+    }
+    setSelectedProducts([
+      ...selectedProducts,
+      {
+        productId: product._id,
+        productName: product.productName,
+        quantity: 1,
+        purchasePrice: product.purchasePrice || 0, // Par défaut
+        salePrice: product.salePrice || product.priceUSD, // Par défaut
+      },
+    ]);
+  };
+  */
+  /*const handleAddProduct = (product) => {
+    if (selectedProducts.find((p) => p.productId === product._id)) {
+      setError("Ce produit a déjà été ajouté.");
+      return;
+    }
+    setSelectedProducts([
+      ...selectedProducts,
+      {
+        productId: product._id,
+        productName: product.productName,
+        quantity: 1,
+        price: product.priceUSD,
+      },
+    ]);
+  };
+*/
   const handleRemoveProduct = (productId) => {
     setSelectedProducts(
       selectedProducts.filter((p) => p.productId !== productId),
@@ -408,7 +442,8 @@ const Orders = () => {
                 <tr>
                   <th>Nom</th>
                   <th>Quantité</th>
-                  <th>Prix (USD)</th>
+                  <th>Prix d'achat (USD)</th>
+                  <th>Prix de vente (USD)</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -430,9 +465,27 @@ const Orders = () => {
                       <Form.Control
                         type="number"
                         min="0"
-                        value={product.price}
+                        value={product.purchasePrice}
                         onChange={(e) =>
-                          handleChangeProduct(index, "price", e.target.value)
+                          handleChangeProduct(
+                            index,
+                            "purchasePrice",
+                            e.target.value,
+                          )
+                        }
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="number"
+                        min="0"
+                        value={product.salePrice}
+                        onChange={(e) =>
+                          handleChangeProduct(
+                            index,
+                            "salePrice",
+                            e.target.value,
+                          )
                         }
                       />
                     </td>
