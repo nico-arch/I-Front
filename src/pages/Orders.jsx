@@ -287,7 +287,6 @@ const Orders = () => {
                         }
                       >
                         <FaEdit className="me-1" />
-                        Modifier
                       </Button>
 
                       {/* Supprimer la commande */}
@@ -297,7 +296,6 @@ const Orders = () => {
                         onClick={() => handleDeleteOrder(order._id)}
                       >
                         <FaTrash className="me-1" />
-                        Supprimer
                       </Button>
 
                       {/* Imprimer la commande */}
@@ -307,7 +305,6 @@ const Orders = () => {
                         onClick={() => handlePrintOrder(order._id)}
                       >
                         <FaPrint className="me-1" />
-                        Imprimer
                       </Button>
 
                       {/* Compléter la commande */}
@@ -321,7 +318,6 @@ const Orders = () => {
                         }
                       >
                         <FaCheck className="me-1" />
-                        Compléter
                       </Button>
 
                       {/* Annuler la commande */}
@@ -334,7 +330,6 @@ const Orders = () => {
                         }
                       >
                         <FaTimes className="me-1" />
-                        Annuler
                       </Button>
                     </td>
                   </tr>
