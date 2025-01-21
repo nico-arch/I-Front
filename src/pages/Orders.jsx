@@ -1,5 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Button, Table, Form, Alert, Pagination } from "react-bootstrap";
+import {
+  Modal,
+  Button,
+  Table,
+  Form,
+  Alert,
+  Pagination,
+  Card,
+  Container,
+  Row,
+  Col,
+} from "react-bootstrap";
+import {
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaSearch,
+  FaPrint,
+  FaCheck,
+  FaTimes,
+} from "react-icons/fa";
+
 import {
   getOrders,
   addOrder,
@@ -26,7 +47,7 @@ const Orders = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Nombre de commandes par page
+  const itemsPerPage = 5;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -76,9 +97,8 @@ const Orders = () => {
             productId: p.product._id,
             productName: p.product.productName,
             quantity: p.quantity,
-            //price: p.price,
-            purchasePrice: p.purchasePrice || "", // Ajouter purchasePrice
-            salePrice: p.salePrice || "", // Ajouter salePrice
+            purchasePrice: p.purchasePrice || "",
+            salePrice: p.salePrice || "",
           }))
         : [],
     );
@@ -86,7 +106,10 @@ const Orders = () => {
     setShowModal(true);
   };
 
-  const handleCloseModal = () => setShowModal(false);
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setError("");
+  };
 
   const handleAddProduct = (product) => {
     if (selectedProducts.find((p) => p.productId === product._id)) {
@@ -99,45 +122,12 @@ const Orders = () => {
         productId: product._id,
         productName: product.productName,
         quantity: 1,
-        purchasePrice: product.purchasePrice || 0, // Par défaut
-        salePrice: product.salePrice || product.priceUSD, // Par défaut
+        purchasePrice: product.purchasePrice || 0,
+        salePrice: product.salePrice || product.priceUSD,
       },
     ]);
   };
 
-  /*const handleAddProduct = (product) => {
-    if (selectedProducts.find((p) => p.productId === product._id)) {
-      setError("Ce produit a déjà été ajouté.");
-      return;
-    }
-    setSelectedProducts([
-      ...selectedProducts,
-      {
-        productId: product._id,
-        productName: product.productName,
-        quantity: 1,
-        purchasePrice: product.purchasePrice || 0, // Par défaut
-        salePrice: product.salePrice || product.priceUSD, // Par défaut
-      },
-    ]);
-  };
-  */
-  /*const handleAddProduct = (product) => {
-    if (selectedProducts.find((p) => p.productId === product._id)) {
-      setError("Ce produit a déjà été ajouté.");
-      return;
-    }
-    setSelectedProducts([
-      ...selectedProducts,
-      {
-        productId: product._id,
-        productName: product.productName,
-        quantity: 1,
-        price: product.priceUSD,
-      },
-    ]);
-  };
-*/
   const handleRemoveProduct = (productId) => {
     setSelectedProducts(
       selectedProducts.filter((p) => p.productId !== productId),
@@ -223,13 +213,13 @@ const Orders = () => {
     const supplierName = order.supplier.companyName.toLowerCase();
     const status = order.status.toLowerCase();
     const totalAmount = order.totalAmount.toString();
-    const orderId = order._id.toLowerCase(); // Inclure l'ID de la commande dans le filtre
+    const orderId = order._id.toLowerCase();
     const searchLower = searchOrder.toLowerCase();
     return (
       supplierName.includes(searchLower) ||
       status.includes(searchLower) ||
       totalAmount.includes(searchLower) ||
-      orderId.includes(searchLower) // Rechercher par ID de la commande
+      orderId.includes(searchLower)
     );
   });
 
@@ -240,107 +230,135 @@ const Orders = () => {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div>
-      <h2>Gestion des commandes</h2>
-      {error && <Alert variant="danger">{error}</Alert>}
-      {success && <Alert variant="success">{success}</Alert>}
+    <Container fluid className="mt-4">
+      <Row>
+        <Col>
+          <Card className="shadow p-4">
+            <h2 className="text-center mb-4">Gestion des commandes</h2>
+            {error && <Alert variant="danger">{error}</Alert>}
+            {success && <Alert variant="success">{success}</Alert>}
 
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <Button variant="primary" onClick={() => handleShowModal()}>
-          Créer une commande
-        </Button>
-        <Form.Control
-          type="text"
-          placeholder="Rechercher une commande..."
-          value={searchOrder}
-          onChange={(e) => setSearchOrder(e.target.value)}
-          style={{ width: "300px" }}
-        />
-      </div>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <Button variant="primary" onClick={() => handleShowModal()}>
+                <FaPlus className="me-2" />
+                Créer une commande
+              </Button>
 
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Fournisseur</th>
-            <th>Date</th>
-            <th>Statut</th>
-            <th>Total</th>
+              <div className="d-flex align-items-center">
+                <FaSearch className="me-2" />
+                <Form.Control
+                  type="text"
+                  placeholder="Rechercher une commande..."
+                  value={searchOrder}
+                  onChange={(e) => setSearchOrder(e.target.value)}
+                  style={{ width: "300px" }}
+                />
+              </div>
+            </div>
 
-            <th>Actions</th>
-          </tr>
-        </thead>
+            <Table striped bordered hover responsive>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Fournisseur</th>
+                  <th>Date</th>
+                  <th>Statut</th>
+                  <th>Total</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentOrders.map((order) => (
+                  <tr key={order._id}>
+                    <td>{order._id}</td>
+                    <td>{order.supplier.companyName}</td>
+                    <td>{new Date(order.orderDate).toLocaleDateString()}</td>
+                    <td>{order.status}</td>
+                    <td>{order.totalAmount} USD</td>
+                    <td>
+                      {/* Modifier la commande */}
+                      <Button
+                        variant="warning"
+                        className="me-2"
+                        onClick={() => handleShowModal(order)}
+                        disabled={
+                          order.status === "complété" ||
+                          order.status === "annulé"
+                        }
+                      >
+                        <FaEdit className="me-1" />
+                        Modifier
+                      </Button>
 
-        <tbody>
-          {currentOrders.map((order) => (
-            <tr key={order._id}>
-              <td>{order._id}</td>
-              <td>{order.supplier.companyName}</td>
-              <td>{new Date(order.orderDate).toLocaleDateString()}</td>
-              <td>{order.status}</td>
-              <td>{order.totalAmount} USD</td>
+                      {/* Supprimer la commande */}
+                      <Button
+                        variant="danger"
+                        className="me-2"
+                        onClick={() => handleDeleteOrder(order._id)}
+                      >
+                        <FaTrash className="me-1" />
+                        Supprimer
+                      </Button>
 
-              <td>
-                <Button
-                  variant="warning"
-                  onClick={() => handleShowModal(order)}
-                  disabled={
-                    order.status === "complété" || order.status === "annulé"
-                  }
+                      {/* Imprimer la commande */}
+                      <Button
+                        variant="secondary"
+                        className="me-2"
+                        onClick={() => handlePrintOrder(order._id)}
+                      >
+                        <FaPrint className="me-1" />
+                        Imprimer
+                      </Button>
+
+                      {/* Compléter la commande */}
+                      <Button
+                        variant="success"
+                        className="me-2"
+                        onClick={() => handleCompleteOrder(order._id)}
+                        disabled={
+                          order.status === "complété" ||
+                          order.status === "annulé"
+                        }
+                      >
+                        <FaCheck className="me-1" />
+                        Compléter
+                      </Button>
+
+                      {/* Annuler la commande */}
+                      <Button
+                        variant="outline-danger"
+                        onClick={() => handleCancelOrder(order._id)}
+                        disabled={
+                          order.status === "complété" ||
+                          order.status === "annulé"
+                        }
+                      >
+                        <FaTimes className="me-1" />
+                        Annuler
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+
+            <Pagination className="mt-3 justify-content-center">
+              {Array.from({
+                length: Math.ceil(filteredOrders.length / itemsPerPage),
+              }).map((_, index) => (
+                <Pagination.Item
+                  key={index + 1}
+                  active={index + 1 === currentPage}
+                  onClick={() => paginate(index + 1)}
                 >
-                  Modifier
-                </Button>{" "}
-                <Button
-                  variant="danger"
-                  onClick={() => handleDeleteOrder(order._id)}
-                >
-                  Supprimer
-                </Button>{" "}
-                <Button
-                  variant="secondary"
-                  onClick={() => handlePrintOrder(order._id)}
-                >
-                  Imprimer
-                </Button>{" "}
-                <Button
-                  variant="success"
-                  onClick={() => handleCompleteOrder(order._id)}
-                  disabled={
-                    order.status === "complété" || order.status === "annulé"
-                  }
-                >
-                  Compléter
-                </Button>{" "}
-                <Button
-                  variant="outline-danger"
-                  onClick={() => handleCancelOrder(order._id)}
-                  disabled={
-                    order.status === "complété" || order.status === "annulé"
-                  }
-                >
-                  Annuler
-                </Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+                  {index + 1}
+                </Pagination.Item>
+              ))}
+            </Pagination>
+          </Card>
+        </Col>
+      </Row>
 
-      <Pagination className="mt-3">
-        {Array.from({
-          length: Math.ceil(filteredOrders.length / itemsPerPage),
-        }).map((_, index) => (
-          <Pagination.Item
-            key={index + 1}
-            active={index + 1 === currentPage}
-            onClick={() => paginate(index + 1)}
-          >
-            {index + 1}
-          </Pagination.Item>
-        ))}
-      </Pagination>
-
-      {/* Modal pour ajouter/modifier une commande */}
       <Modal show={showModal} onHide={handleCloseModal} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>
@@ -349,8 +367,8 @@ const Orders = () => {
         </Modal.Header>
         <Modal.Body>
           <Form onSubmit={handleSubmit}>
-            <div className="d-flex mb-3">
-              <div className="me-4" style={{ width: "50%" }}>
+            <Row>
+              <Col>
                 <h5>Fournisseurs</h5>
                 <Form.Control
                   type="text"
@@ -359,11 +377,8 @@ const Orders = () => {
                   onChange={(e) => setSearchSupplier(e.target.value)}
                 />
                 <div
-                  style={{
-                    maxHeight: "200px",
-                    overflowY: "scroll",
-                    marginTop: "10px",
-                  }}
+                  className="mt-2"
+                  style={{ maxHeight: "200px", overflowY: "scroll" }}
                 >
                   {suppliers
                     .filter((supplier) =>
@@ -374,7 +389,7 @@ const Orders = () => {
                     .map((supplier) => (
                       <div
                         key={supplier._id}
-                        className="d-flex justify-content-between align-items-center"
+                        className="d-flex justify-content-between align-items-center my-2"
                       >
                         <span>{supplier.companyName}</span>
                         <Button
@@ -389,26 +404,22 @@ const Orders = () => {
                 </div>
                 {selectedSupplier && (
                   <div className="mt-2">
-                    <strong>Fournisseur sélectionné:</strong>{" "}
+                    <strong>Fournisseur sélectionné :</strong>{" "}
                     {selectedSupplier.companyName}
                   </div>
                 )}
-              </div>
-
-              <div style={{ width: "50%" }}>
+              </Col>
+              <Col>
                 <h5>Produits</h5>
                 <Form.Control
                   type="text"
-                  placeholder="Rechercher des produits"
+                  placeholder="Rechercher un produit"
                   value={searchProduct}
                   onChange={(e) => setSearchProduct(e.target.value)}
                 />
                 <div
-                  style={{
-                    maxHeight: "200px",
-                    overflowY: "scroll",
-                    marginTop: "10px",
-                  }}
+                  className="mt-2"
+                  style={{ maxHeight: "200px", overflowY: "scroll" }}
                 >
                   {products
                     .filter((product) =>
@@ -419,11 +430,12 @@ const Orders = () => {
                     .map((product) => (
                       <div
                         key={product._id}
-                        className="d-flex justify-content-between align-items-center"
+                        className="d-flex justify-content-between align-items-center my-2"
                       >
                         <span>
-                          {product.productName} - Stock: {product.stockQuantity}{" "}
-                          - Prix: {product.priceUSD} USD
+                          {product.productName} - Stock :{" "}
+                          {product.stockQuantity} - Prix : {product.priceUSD}{" "}
+                          USD
                         </span>
                         <Button
                           variant="outline-primary"
@@ -435,11 +447,11 @@ const Orders = () => {
                       </div>
                     ))}
                 </div>
-              </div>
-            </div>
+              </Col>
+            </Row>
 
-            <h5>Produits sélectionnés</h5>
-            <Table striped bordered>
+            <h5 className="mt-4">Produits sélectionnés</h5>
+            <Table striped bordered hover>
               <thead>
                 <tr>
                   <th>Nom</th>
@@ -505,13 +517,13 @@ const Orders = () => {
               </tbody>
             </Table>
 
-            <Button variant="primary" type="submit" className="mt-3">
+            <Button variant="primary" type="submit" className="mt-3 w-100">
               {currentOrder ? "Modifier" : "Créer"} la commande
             </Button>
           </Form>
         </Modal.Body>
       </Modal>
-    </div>
+    </Container>
   );
 };
 

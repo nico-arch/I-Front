@@ -1,5 +1,24 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Modal, Form, Alert, Pagination } from "react-bootstrap";
+import {
+  Table,
+  Button,
+  Modal,
+  Form,
+  Alert,
+  Pagination,
+  Card,
+  Container,
+  Row,
+  Col,
+} from "react-bootstrap";
+import {
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaPrint,
+  FaFilter,
+  FaSearch,
+} from "react-icons/fa";
 import {
   getProducts,
   addProduct,
@@ -21,12 +40,12 @@ const Products = () => {
     categories: [],
   });
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [showOutOfStock, setShowOutOfStock] = useState(false);
   const itemsPerPage = 5;
 
-  // Charger les produits et les catégories au montage du composant
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -41,7 +60,6 @@ const Products = () => {
     fetchData();
   }, []);
 
-  // Gérer l'ouverture du modal pour ajouter/modifier un produit
   const handleShowModal = (product = null) => {
     setCurrentProduct(product);
     setFormData(
@@ -57,18 +75,16 @@ const Products = () => {
     );
     setShowModal(true);
     setError("");
+    setSuccess("");
   };
 
-  // Gérer la fermeture du modal
   const handleCloseModal = () => setShowModal(false);
 
-  // Gérer les changements de formulaire
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // Gérer les changements de catégories (multisélection)
   const handleCategoryChange = (e) => {
     const selectedCategories = Array.from(
       e.target.selectedOptions,
@@ -77,27 +93,30 @@ const Products = () => {
     setFormData({ ...formData, categories: selectedCategories });
   };
 
-  // Soumettre le formulaire (ajout ou modification)
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (currentProduct) {
         await editProduct(currentProduct._id, formData);
+        setSuccess("Produit modifié avec succès.");
       } else {
         await addProduct(formData);
+        setSuccess("Produit ajouté avec succès.");
       }
       setShowModal(false);
+      setTimeout(() => setSuccess(""), 3000);
       window.location.reload();
     } catch (err) {
       setError(err.message);
     }
   };
 
-  // Supprimer un produit
   const handleDelete = async (id) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) {
       try {
         await deleteProduct(id);
+        setSuccess("Produit supprimé avec succès.");
+        setTimeout(() => setSuccess(""), 3000);
         window.location.reload();
       } catch (err) {
         setError(err.message);
@@ -105,13 +124,11 @@ const Products = () => {
     }
   };
 
-  // Gérer la recherche
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
   };
 
-  // Filtrer les produits en fonction du terme de recherche
   const filteredProducts = products.filter((product) => {
     const productName = product.productName?.toLowerCase() || "";
     const description = product.description?.toLowerCase() || "";
@@ -121,12 +138,10 @@ const Products = () => {
     );
   });
 
-  // Filtrer les produits out of stock si nécessaire
   const displayedProducts = showOutOfStock
     ? filteredProducts.filter((product) => product.stockQuantity === 0)
     : filteredProducts;
 
-  // Pagination : Calculer les produits à afficher pour la page courante
   const indexOfLastProduct = currentPage * itemsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - itemsPerPage;
   const currentProducts = displayedProducts.slice(
@@ -134,10 +149,8 @@ const Products = () => {
     indexOfLastProduct,
   );
 
-  // Gérer le changement de page
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  // Imprimer la liste des produits out of stock
   const handlePrintOutOfStock = () => {
     const outOfStockProducts = products.filter(
       (product) => product.stockQuantity === 0,
@@ -155,92 +168,106 @@ const Products = () => {
   };
 
   return (
-    <div>
-      <h2>Gestion des produits</h2>
-      {error && <Alert variant="danger">{error}</Alert>}
+    <Container fluid className="mt-4">
+      <Row>
+        <Col>
+          <Card className="shadow p-4">
+            <h2 className="text-center mb-4">Gestion des produits</h2>
+            {error && <Alert variant="danger">{error}</Alert>}
+            {success && <Alert variant="success">{success}</Alert>}
 
-      <div className="d-flex justify-content-between mb-3">
-        <div>
-          <Button variant="primary" onClick={() => handleShowModal()}>
-            Ajouter un produit
-          </Button>{" "}
-          <Button
-            variant="secondary"
-            onClick={() => setShowOutOfStock(!showOutOfStock)}
-          >
-            {showOutOfStock
-              ? "Afficher tous les produits"
-              : "Produits en rupture de stock"}
-          </Button>{" "}
-          <Button variant="info" onClick={handlePrintOutOfStock}>
-            Imprimer les produits en rupture de stock
-          </Button>
-        </div>
-        <Form.Control
-          type="text"
-          placeholder="Rechercher un produit..."
-          value={searchTerm}
-          onChange={handleSearch}
-          style={{ width: "300px" }}
-        />
-      </div>
-
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Nom du produit</th>
-            <th>Description</th>
-            <th>Prix (USD)</th>
-            <th>Stock</th>
-            <th>Catégories</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentProducts.map((product) => (
-            <tr key={product._id}>
-              <td>{product.productName}</td>
-              <td>{product.description}</td>
-              <td>{product.priceUSD}</td>
-              <td>{product.stockQuantity}</td>
-              <td>
-                {product.categories.map((category) => category.name).join(", ")}
-              </td>
-              <td>
-                <Button
-                  variant="warning"
-                  onClick={() => handleShowModal(product)}
-                >
-                  Modifier
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <Button variant="primary" onClick={() => handleShowModal()}>
+                  <FaPlus className="me-2" />
+                  Ajouter un produit
                 </Button>{" "}
                 <Button
-                  variant="danger"
-                  onClick={() => handleDelete(product._id)}
+                  variant="secondary"
+                  onClick={() => setShowOutOfStock(!showOutOfStock)}
                 >
-                  Supprimer
+                  <FaFilter className="me-2" />
+                  {showOutOfStock
+                    ? "Afficher tous les produits"
+                    : "Produits en rupture de stock"}
+                </Button>{" "}
+                <Button variant="info" onClick={handlePrintOutOfStock}>
+                  <FaPrint className="me-2" />
+                  Imprimer les produits en rupture de stock
                 </Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+              </div>
+              <div className="d-flex align-items-center">
+                <FaSearch className="me-2" />
+                <Form.Control
+                  type="text"
+                  placeholder="Rechercher un produit..."
+                  value={searchTerm}
+                  onChange={handleSearch}
+                  style={{ width: "300px" }}
+                />
+              </div>
+            </div>
 
-      {/* Pagination */}
-      <Pagination className="mt-3">
-        {Array.from({
-          length: Math.ceil(displayedProducts.length / itemsPerPage),
-        }).map((_, index) => (
-          <Pagination.Item
-            key={index + 1}
-            active={index + 1 === currentPage}
-            onClick={() => paginate(index + 1)}
-          >
-            {index + 1}
-          </Pagination.Item>
-        ))}
-      </Pagination>
+            <Table striped bordered hover responsive>
+              <thead>
+                <tr>
+                  <th>Nom du produit</th>
+                  <th>Description</th>
+                  <th>Prix (USD)</th>
+                  <th>Stock</th>
+                  <th>Catégories</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentProducts.map((product) => (
+                  <tr key={product._id}>
+                    <td>{product.productName}</td>
+                    <td>{product.description}</td>
+                    <td>{product.priceUSD}</td>
+                    <td>{product.stockQuantity}</td>
+                    <td>
+                      {product.categories
+                        .map((category) => category.name)
+                        .join(", ")}
+                    </td>
+                    <td>
+                      <Button
+                        variant="warning"
+                        className="me-2"
+                        onClick={() => handleShowModal(product)}
+                      >
+                        <FaEdit />
+                      </Button>
+                      <Button
+                        variant="danger"
+                        onClick={() => handleDelete(product._id)}
+                      >
+                        <FaTrash />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
 
-      {/* Modal pour ajouter/modifier un produit */}
+            <Pagination className="mt-3 justify-content-center">
+              {Array.from({
+                length: Math.ceil(displayedProducts.length / itemsPerPage),
+              }).map((_, index) => (
+                <Pagination.Item
+                  key={index + 1}
+                  active={index + 1 === currentPage}
+                  onClick={() => paginate(index + 1)}
+                >
+                  {index + 1}
+                </Pagination.Item>
+              ))}
+            </Pagination>
+          </Card>
+        </Col>
+      </Row>
+
       <Modal show={showModal} onHide={handleCloseModal}>
         <Modal.Header closeButton>
           <Modal.Title>
@@ -259,8 +286,7 @@ const Products = () => {
                 required
               />
             </Form.Group>
-
-            <Form.Group controlId="description">
+            <Form.Group controlId="description" className="mt-3">
               <Form.Label>Description</Form.Label>
               <Form.Control
                 type="text"
@@ -269,8 +295,7 @@ const Products = () => {
                 onChange={handleChange}
               />
             </Form.Group>
-
-            <Form.Group controlId="priceUSD">
+            <Form.Group controlId="priceUSD" className="mt-3">
               <Form.Label>Prix (USD)</Form.Label>
               <Form.Control
                 type="number"
@@ -280,8 +305,7 @@ const Products = () => {
                 required
               />
             </Form.Group>
-
-            <Form.Group controlId="stockQuantity">
+            <Form.Group controlId="stockQuantity" className="mt-3">
               <Form.Label>Quantité en stock</Form.Label>
               <Form.Control
                 type="number"
@@ -291,8 +315,7 @@ const Products = () => {
                 required
               />
             </Form.Group>
-
-            <Form.Group controlId="categories">
+            <Form.Group controlId="categories" className="mt-3">
               <Form.Label>Catégories</Form.Label>
               <Form.Control
                 as="select"
@@ -307,14 +330,13 @@ const Products = () => {
                 ))}
               </Form.Control>
             </Form.Group>
-
-            <Button variant="primary" type="submit" className="mt-3">
+            <Button variant="primary" type="submit" className="mt-4 w-100">
               {currentProduct ? "Modifier" : "Ajouter"}
             </Button>
           </Form>
         </Modal.Body>
       </Modal>
-    </div>
+    </Container>
   );
 };
 

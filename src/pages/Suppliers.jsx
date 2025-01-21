@@ -1,5 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Modal, Form, Alert, Pagination } from "react-bootstrap";
+import {
+  Table,
+  Button,
+  Modal,
+  Form,
+  Alert,
+  Pagination,
+  Card,
+  Container,
+  Row,
+  Col,
+} from "react-bootstrap";
+import { FaPlus, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
 import {
   getSuppliers,
   addSupplier,
@@ -21,6 +33,7 @@ const Suppliers = () => {
     website: "",
   });
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -38,7 +51,6 @@ const Suppliers = () => {
     fetchData();
   }, []);
 
-  // Gérer l'ouverture du modal pour ajouter/modifier un fournisseur
   const handleShowModal = (supplier = null) => {
     setCurrentSupplier(supplier);
     setFormData(
@@ -56,38 +68,40 @@ const Suppliers = () => {
     );
     setShowModal(true);
     setError("");
+    setSuccess("");
   };
 
-  // Gérer la fermeture du modal
   const handleCloseModal = () => setShowModal(false);
 
-  // Gérer les changements de formulaire
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // Soumettre le formulaire (ajout ou modification)
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (currentSupplier) {
         await editSupplier(currentSupplier._id, formData);
+        setSuccess("Fournisseur modifié avec succès.");
       } else {
         await addSupplier(formData);
+        setSuccess("Fournisseur ajouté avec succès.");
       }
       setShowModal(false);
+      setTimeout(() => setSuccess(""), 3000);
       window.location.reload();
     } catch (err) {
       setError(err.message);
     }
   };
 
-  // Supprimer un fournisseur
   const handleDelete = async (id) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce fournisseur ?")) {
       try {
         await deleteSupplier(id);
+        setSuccess("Fournisseur supprimé avec succès.");
+        setTimeout(() => setSuccess(""), 3000);
         window.location.reload();
       } catch (err) {
         setError(err.message);
@@ -95,13 +109,11 @@ const Suppliers = () => {
     }
   };
 
-  // Gérer la recherche
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
   };
 
-  // Filtrer les fournisseurs en fonction du terme de recherche
   const filteredSuppliers = suppliers.filter((supplier) => {
     const companyName = supplier.companyName?.toLowerCase() || "";
     const email = supplier.emails.join(", ").toLowerCase();
@@ -114,7 +126,6 @@ const Suppliers = () => {
     );
   });
 
-  // Pagination : Calculer les fournisseurs à afficher pour la page courante
   const indexOfLastSupplier = currentPage * itemsPerPage;
   const indexOfFirstSupplier = indexOfLastSupplier - itemsPerPage;
   const currentSuppliers = filteredSuppliers.slice(
@@ -122,77 +133,86 @@ const Suppliers = () => {
     indexOfLastSupplier,
   );
 
-  // Gérer le changement de page
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div>
-      <h2>Gestion des fournisseurs</h2>
-      {error && <Alert variant="danger">{error}</Alert>}
+    <Container fluid className="mt-4">
+      <Row>
+        <Col>
+          <Card className="shadow p-4">
+            <h2 className="text-center mb-4">Gestion des fournisseurs</h2>
+            {error && <Alert variant="danger">{error}</Alert>}
+            {success && <Alert variant="success">{success}</Alert>}
 
-      <div className="d-flex justify-content-between mb-3">
-        <Button variant="primary" onClick={() => handleShowModal()}>
-          Ajouter un fournisseur
-        </Button>
-        <Form.Control
-          type="text"
-          placeholder="Rechercher un fournisseur..."
-          value={searchTerm}
-          onChange={handleSearch}
-          style={{ width: "300px" }}
-        />
-      </div>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <Button variant="primary" onClick={() => handleShowModal()}>
+                <FaPlus className="me-2" />
+                Ajouter un fournisseur
+              </Button>
+              <div className="d-flex align-items-center">
+                <FaSearch className="me-2" />
+                <Form.Control
+                  type="text"
+                  placeholder="Rechercher un fournisseur..."
+                  value={searchTerm}
+                  onChange={handleSearch}
+                  style={{ width: "300px" }}
+                />
+              </div>
+            </div>
 
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Nom de l'entreprise</th>
-            <th>Emails</th>
-            <th>Adresses</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentSuppliers.map((supplier) => (
-            <tr key={supplier._id}>
-              <td>{supplier.companyName}</td>
-              <td>{supplier.emails.join(", ")}</td>
-              <td>{supplier.addresses.join(", ")}</td>
-              <td>
-                <Button
-                  variant="warning"
-                  onClick={() => handleShowModal(supplier)}
+            <Table striped bordered hover responsive>
+              <thead>
+                <tr>
+                  <th>Nom de l'entreprise</th>
+                  <th>Emails</th>
+                  <th>Adresses</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentSuppliers.map((supplier) => (
+                  <tr key={supplier._id}>
+                    <td>{supplier.companyName}</td>
+                    <td>{supplier.emails.join(", ")}</td>
+                    <td>{supplier.addresses.join(", ")}</td>
+                    <td>
+                      <Button
+                        variant="warning"
+                        className="me-2"
+                        onClick={() => handleShowModal(supplier)}
+                      >
+                        <FaEdit />
+                      </Button>
+                      <Button
+                        variant="danger"
+                        onClick={() => handleDelete(supplier._id)}
+                      >
+                        <FaTrash />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+
+            <Pagination className="mt-3 justify-content-center">
+              {Array.from({
+                length: Math.ceil(filteredSuppliers.length / itemsPerPage),
+              }).map((_, index) => (
+                <Pagination.Item
+                  key={index + 1}
+                  active={index + 1 === currentPage}
+                  onClick={() => paginate(index + 1)}
                 >
-                  Modifier
-                </Button>{" "}
-                <Button
-                  variant="danger"
-                  onClick={() => handleDelete(supplier._id)}
-                >
-                  Supprimer
-                </Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+                  {index + 1}
+                </Pagination.Item>
+              ))}
+            </Pagination>
+          </Card>
+        </Col>
+      </Row>
 
-      {/* Pagination */}
-      <Pagination className="mt-3">
-        {Array.from({
-          length: Math.ceil(filteredSuppliers.length / itemsPerPage),
-        }).map((_, index) => (
-          <Pagination.Item
-            key={index + 1}
-            active={index + 1 === currentPage}
-            onClick={() => paginate(index + 1)}
-          >
-            {index + 1}
-          </Pagination.Item>
-        ))}
-      </Pagination>
-
-      {/* Modal pour ajouter/modifier un fournisseur */}
       <Modal show={showModal} onHide={handleCloseModal}>
         <Modal.Header closeButton>
           <Modal.Title>
@@ -211,8 +231,7 @@ const Suppliers = () => {
                 required
               />
             </Form.Group>
-
-            <Form.Group controlId="emails">
+            <Form.Group controlId="emails" className="mt-3">
               <Form.Label>Emails</Form.Label>
               <Form.Control
                 type="text"
@@ -228,8 +247,7 @@ const Suppliers = () => {
                 }
               />
             </Form.Group>
-
-            <Form.Group controlId="addresses">
+            <Form.Group controlId="addresses" className="mt-3">
               <Form.Label>Adresses</Form.Label>
               <Form.Control
                 type="text"
@@ -245,8 +263,7 @@ const Suppliers = () => {
                 }
               />
             </Form.Group>
-
-            <Form.Group controlId="website">
+            <Form.Group controlId="website" className="mt-3">
               <Form.Label>Site Web</Form.Label>
               <Form.Control
                 type="text"
@@ -255,14 +272,13 @@ const Suppliers = () => {
                 onChange={handleChange}
               />
             </Form.Group>
-
-            <Button variant="primary" type="submit" className="mt-3">
+            <Button variant="primary" type="submit" className="mt-4 w-100">
               {currentSupplier ? "Modifier" : "Ajouter"}
             </Button>
           </Form>
         </Modal.Body>
       </Modal>
-    </div>
+    </Container>
   );
 };
 

@@ -1,5 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Modal, Form, Alert, Pagination } from "react-bootstrap";
+import {
+  Table,
+  Button,
+  Modal,
+  Form,
+  Alert,
+  Pagination,
+  Card,
+  Container,
+  Row,
+  Col,
+} from "react-bootstrap";
+import { FaUserPlus, FaEdit, FaTrashAlt, FaSearch } from "react-icons/fa";
 import {
   getUsers,
   addUser,
@@ -21,11 +33,11 @@ const Users = () => {
     roles: [],
   });
   const [error, setError] = useState("");
-  const [searchTerm, setSearchTerm] = useState(""); // État pour la recherche
-  const [currentPage, setCurrentPage] = useState(1); // État pour la pagination
-  const itemsPerPage = 5; // Nombre d'utilisateurs par page
+  const [success, setSuccess] = useState(""); // État pour les messages de succès
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
-  // Charger les utilisateurs et les rôles au montage du composant
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -40,7 +52,6 @@ const Users = () => {
     fetchData();
   }, []);
 
-  // Gérer l'ouverture du modal pour ajouter/modifier
   const handleShowModal = (user = null) => {
     setCurrentUser(user);
     setFormData(
@@ -50,18 +61,16 @@ const Users = () => {
     );
     setShowModal(true);
     setError("");
+    setSuccess("");
   };
 
-  // Gérer la fermeture du modal
   const handleCloseModal = () => setShowModal(false);
 
-  // Gérer les changements de formulaire
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // Gérer la sélection des rôles
   const handleRolesChange = (e) => {
     const selectedRoles = Array.from(
       e.target.selectedOptions,
@@ -70,7 +79,6 @@ const Users = () => {
     setFormData({ ...formData, roles: selectedRoles });
   };
 
-  // Soumettre le formulaire (ajout ou modification)
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -81,30 +89,33 @@ const Users = () => {
         roles: formData.roles,
       };
 
-      // Ajouter le mot de passe uniquement s'il est renseigné
       if (formData.password) {
         newUser.password = formData.password;
       }
 
       if (currentUser) {
         await editUser(currentUser._id, newUser);
+        setSuccess("Utilisateur modifié avec succès.");
       } else {
         await addUser(newUser);
+        setSuccess("Utilisateur ajouté avec succès.");
       }
       setShowModal(false);
+      //setTimeout(() => setSuccess(""), 3000); // Efface le message de succès après 3 secondes
       window.location.reload();
     } catch (err) {
       setError(err.message);
     }
   };
 
-  // Supprimer un utilisateur
   const handleDelete = async (id) => {
     if (
       window.confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")
     ) {
       try {
         await deleteUser(id);
+        setSuccess("Utilisateur supprimé avec succès.");
+        //setTimeout(() => setSuccess(""), 3000); // Efface le message de succès après 3 secondes
         window.location.reload();
       } catch (err) {
         setError(err.message);
@@ -112,13 +123,11 @@ const Users = () => {
     }
   };
 
-  // Gérer la recherche
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1); // Réinitialiser à la première page lors d'une recherche
+    setCurrentPage(1);
   };
 
-  // Filtrer les utilisateurs en fonction du terme de recherche
   const filteredUsers = users.filter((user) => {
     const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
     const email = user.email.toLowerCase();
@@ -133,78 +142,92 @@ const Users = () => {
     );
   });
 
-  // Pagination : Calculer les utilisateurs à afficher pour la page courante
   const indexOfLastUser = currentPage * itemsPerPage;
   const indexOfFirstUser = indexOfLastUser - itemsPerPage;
   const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
 
-  // Gérer le changement de page
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div>
-      <h2>Gestion des utilisateurs</h2>
-      {error && <Alert variant="danger">{error}</Alert>}
+    <Container fluid className="mt-4">
+      <Row>
+        <Col>
+          <Card className="shadow p-4">
+            <h2 className="text-center mb-4">Gestion des utilisateurs</h2>
+            {error && <Alert variant="danger">{error}</Alert>}
+            {success && <Alert variant="success">{success}</Alert>}
 
-      <div className="d-flex justify-content-between mb-3">
-        <Button variant="primary" onClick={() => handleShowModal()}>
-          Ajouter un utilisateur
-        </Button>
-        <Form.Control
-          type="text"
-          placeholder="Rechercher un utilisateur..."
-          value={searchTerm}
-          onChange={handleSearch}
-          style={{ width: "300px" }}
-        />
-      </div>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <Button variant="primary" onClick={() => handleShowModal()}>
+                <FaUserPlus className="me-2" />
+                Ajouter un utilisateur
+              </Button>
+              <div className="d-flex align-items-center">
+                <FaSearch className="me-2" />
+                <Form.Control
+                  type="text"
+                  placeholder="Rechercher..."
+                  value={searchTerm}
+                  onChange={handleSearch}
+                  style={{ width: "300px" }}
+                />
+              </div>
+            </div>
 
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Prénom</th>
-            <th>Nom</th>
-            <th>Email</th>
-            <th>Rôles</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentUsers.map((user) => (
-            <tr key={user._id}>
-              <td>{user.firstName}</td>
-              <td>{user.lastName}</td>
-              <td>{user.email}</td>
-              <td>{user.roles.map((role) => role.name).join(", ")}</td>
-              <td>
-                <Button variant="warning" onClick={() => handleShowModal(user)}>
-                  Modifier
-                </Button>{" "}
-                <Button variant="danger" onClick={() => handleDelete(user._id)}>
-                  Supprimer
-                </Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+            <Table striped bordered hover responsive>
+              <thead>
+                <tr>
+                  <th>Prénom</th>
+                  <th>Nom</th>
+                  <th>Email</th>
+                  <th>Rôles</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentUsers.map((user) => (
+                  <tr key={user._id}>
+                    <td>{user.firstName}</td>
+                    <td>{user.lastName}</td>
+                    <td>{user.email}</td>
+                    <td>{user.roles.map((role) => role.name).join(", ")}</td>
+                    <td>
+                      <Button
+                        variant="warning"
+                        className="me-2"
+                        onClick={() => handleShowModal(user)}
+                      >
+                        <FaEdit />
+                      </Button>
+                      <Button
+                        variant="danger"
+                        onClick={() => handleDelete(user._id)}
+                      >
+                        <FaTrashAlt />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
 
-      {/* Pagination */}
-      <Pagination className="mt-3">
-        {Array.from({
-          length: Math.ceil(filteredUsers.length / itemsPerPage),
-        }).map((_, index) => (
-          <Pagination.Item
-            key={index + 1}
-            active={index + 1 === currentPage}
-            onClick={() => paginate(index + 1)}
-          >
-            {index + 1}
-          </Pagination.Item>
-        ))}
-      </Pagination>
+            <Pagination className="mt-3 justify-content-center">
+              {Array.from({
+                length: Math.ceil(filteredUsers.length / itemsPerPage),
+              }).map((_, index) => (
+                <Pagination.Item
+                  key={index + 1}
+                  active={index + 1 === currentPage}
+                  onClick={() => paginate(index + 1)}
+                >
+                  {index + 1}
+                </Pagination.Item>
+              ))}
+            </Pagination>
+          </Card>
+        </Col>
+      </Row>
 
-      {/* Modal pour ajouter/modifier un utilisateur */}
       <Modal show={showModal} onHide={handleCloseModal}>
         <Modal.Header closeButton>
           <Modal.Title>
@@ -223,8 +246,7 @@ const Users = () => {
                 required
               />
             </Form.Group>
-
-            <Form.Group controlId="lastName">
+            <Form.Group controlId="lastName" className="mt-3">
               <Form.Label>Nom</Form.Label>
               <Form.Control
                 type="text"
@@ -234,8 +256,7 @@ const Users = () => {
                 required
               />
             </Form.Group>
-
-            <Form.Group controlId="email">
+            <Form.Group controlId="email" className="mt-3">
               <Form.Label>Email</Form.Label>
               <Form.Control
                 type="email"
@@ -245,8 +266,7 @@ const Users = () => {
                 required
               />
             </Form.Group>
-
-            <Form.Group controlId="password">
+            <Form.Group controlId="password" className="mt-3">
               <Form.Label>Mot de passe</Form.Label>
               <Form.Control
                 type="password"
@@ -256,8 +276,7 @@ const Users = () => {
                 placeholder="Laissez vide pour ne pas changer"
               />
             </Form.Group>
-
-            <Form.Group controlId="roles">
+            <Form.Group controlId="roles" className="mt-3">
               <Form.Label>Rôles</Form.Label>
               <Form.Control
                 as="select"
@@ -273,14 +292,13 @@ const Users = () => {
                 ))}
               </Form.Control>
             </Form.Group>
-
-            <Button variant="primary" type="submit" className="mt-3">
+            <Button variant="primary" type="submit" className="mt-3 w-100">
               {currentUser ? "Modifier" : "Ajouter"}
             </Button>
           </Form>
         </Modal.Body>
       </Modal>
-    </div>
+    </Container>
   );
 };
 

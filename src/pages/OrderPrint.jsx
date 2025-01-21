@@ -1,26 +1,47 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getOrderById } from "../services/orderService";
+import { Table, Button, Card, Spinner, Container } from "react-bootstrap";
 
 const OrderPrint = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const fetchOrder = async () => {
+      try {
+        const orderData = await getOrderById(id);
+        setOrder(orderData);
+      } catch (err) {
+        console.error("Erreur lors de la récupération de la commande :", err);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchOrder();
-  }, []);
+  }, [id]);
 
-  const fetchOrder = async () => {
-    try {
-      const orderData = await getOrderById(id);
-      setOrder(orderData);
-    } catch (err) {
-      console.error("Erreur lors de la récupération de la commande :", err);
-    }
-  };
+  if (loading) {
+    return (
+      <Container className="text-center mt-5">
+        <Spinner animation="border" variant="primary" />
+        <p className="mt-3">Chargement de la commande...</p>
+      </Container>
+    );
+  }
 
-  if (!order) return <div>Chargement...</div>;
+  if (!order) {
+    return (
+      <Container className="text-center mt-5">
+        <h4>Commande introuvable</h4>
+        <Button variant="primary" onClick={() => navigate("/orders")}>
+          Retour
+        </Button>
+      </Container>
+    );
+  }
 
   const calculateProfit = (salePrice, purchasePrice, quantity) => {
     return (salePrice - purchasePrice) * quantity;
@@ -33,64 +54,73 @@ const OrderPrint = () => {
   );
 
   return (
-    <div style={{ width: "8.5in", margin: "0 auto", padding: "1in" }}>
-      <h2>Commande #{order._id}</h2>
-      <p>
-        <strong>Fournisseur:</strong> {order.supplier.companyName}
-      </p>
-      <p>
-        <strong>Email:</strong> {order.supplier.emails[0]}
-      </p>
-      <p>
-        <strong>Adresse:</strong> {order.supplier.addresses[0]}
-      </p>
-      <p>
-        <strong>Date:</strong> {new Date(order.orderDate).toLocaleDateString()}
-      </p>
-      <p>
-        <strong>Créé par:</strong> {order.createdBy.firstName}{" "}
-        {order.createdBy.lastName}
-      </p>
-      <p>
-        <strong>Statut:</strong> {order.status}
-      </p>
-      <h4>Détails de la commande</h4>
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+    <div
+      style={{
+        width: "8.5in",
+        margin: "0 auto",
+        padding: "1in",
+        fontFamily: "Arial, sans-serif",
+      }}
+      className="print-container"
+    >
+      <h2 className="text-center">Commande #{order._id}</h2>
+      <hr />
+      <div>
+        <p>
+          <strong>Fournisseur :</strong> {order.supplier.companyName}
+        </p>
+        <p>
+          <strong>Email :</strong> {order.supplier.emails[0]}
+        </p>
+        <p>
+          <strong>Adresse :</strong> {order.supplier.addresses[0]}
+        </p>
+        <p>
+          <strong>Date :</strong>{" "}
+          {new Date(order.orderDate).toLocaleDateString()}
+        </p>
+        <p>
+          <strong>Créé par :</strong> {order.createdBy.firstName}{" "}
+          {order.createdBy.lastName}
+        </p>
+        <p>
+          <strong>Statut :</strong>{" "}
+          <span
+            style={{
+              padding: "4px 8px",
+              backgroundColor:
+                order.status === "completed"
+                  ? "#28a745"
+                  : order.status === "pending"
+                    ? "#ffc107"
+                    : "#6c757d",
+              color: "#fff",
+              borderRadius: "4px",
+            }}
+          >
+            {order.status}
+          </span>
+        </p>
+      </div>
+      <h4 className="mt-4">Détails de la commande</h4>
+      <Table striped bordered className="mt-3">
         <thead>
           <tr>
-            <th style={{ border: "1px solid black", padding: "8px" }}>
-              Produit
-            </th>
-            <th style={{ border: "1px solid black", padding: "8px" }}>
-              Quantité
-            </th>
-            <th style={{ border: "1px solid black", padding: "8px" }}>
-              Prix d'achat
-            </th>
-            <th style={{ border: "1px solid black", padding: "8px" }}>
-              Prix de vente
-            </th>
-            <th style={{ border: "1px solid black", padding: "8px" }}>
-              Bénéfice par produit
-            </th>
+            <th>Produit</th>
+            <th>Quantité</th>
+            <th>Prix d'achat</th>
+            <th>Prix de vente</th>
+            <th>Bénéfice par produit</th>
           </tr>
         </thead>
         <tbody>
           {order.products.map((item) => (
             <tr key={item.product._id}>
-              <td style={{ border: "1px solid black", padding: "8px" }}>
-                {item.product.productName}
-              </td>
-              <td style={{ border: "1px solid black", padding: "8px" }}>
-                {item.quantity}
-              </td>
-              <td style={{ border: "1px solid black", padding: "8px" }}>
-                {item.purchasePrice || "N/A"} USD
-              </td>
-              <td style={{ border: "1px solid black", padding: "8px" }}>
-                {item.salePrice || "N/A"} USD
-              </td>
-              <td style={{ border: "1px solid black", padding: "8px" }}>
+              <td>{item.product.productName}</td>
+              <td>{item.quantity}</td>
+              <td>{item.purchasePrice || "N/A"} USD</td>
+              <td>{item.salePrice || "N/A"} USD</td>
+              <td>
                 {calculateProfit(
                   item.salePrice,
                   item.purchasePrice,
@@ -101,26 +131,25 @@ const OrderPrint = () => {
             </tr>
           ))}
         </tbody>
-      </table>
+      </Table>
       <p>
-        <strong>Total:</strong> {order.totalAmount.toFixed(2)} USD
+        <strong>Total :</strong> {order.totalAmount.toFixed(2)} USD
       </p>
       <p>
-        <strong>Bénéfice total:</strong> {totalProfit.toFixed(2)} USD
+        <strong>Bénéfice total :</strong> {totalProfit.toFixed(2)} USD
       </p>
-      <button
-        onClick={() => navigate("/orders")}
-        style={{
-          marginTop: "20px",
-          padding: "10px",
-          backgroundColor: "#007bff",
-          color: "white",
-          border: "none",
-          cursor: "pointer",
-        }}
-      >
-        Retour
-      </button>
+      <div className="text-center mt-4">
+        <Button variant="primary" onClick={() => navigate("/orders")}>
+          Retour
+        </Button>
+        <Button
+          variant="secondary"
+          className="ms-2"
+          onClick={() => window.print()}
+        >
+          Imprimer
+        </Button>
+      </div>
     </div>
   );
 };
