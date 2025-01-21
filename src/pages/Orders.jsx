@@ -76,7 +76,9 @@ const Orders = () => {
             productId: p.product._id,
             productName: p.product.productName,
             quantity: p.quantity,
-            price: p.price,
+            //price: p.price,
+            purchasePrice: p.purchasePrice || "", // Ajouter purchasePrice
+            salePrice: p.salePrice || "", // Ajouter salePrice
           }))
         : [],
     );

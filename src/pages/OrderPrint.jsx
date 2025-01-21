@@ -15,15 +15,22 @@ const OrderPrint = () => {
     try {
       const orderData = await getOrderById(id);
       setOrder(orderData);
-      //console.log("Supplier email :" + order.supplier.email);
     } catch (err) {
-      console.error(
-        "Erreur lors de la récupération de la commande. error:" + err,
-      );
+      console.error("Erreur lors de la récupération de la commande :", err);
     }
   };
 
   if (!order) return <div>Chargement...</div>;
+
+  const calculateProfit = (salePrice, purchasePrice, quantity) => {
+    return (salePrice - purchasePrice) * quantity;
+  };
+
+  const totalProfit = order.products.reduce(
+    (acc, item) =>
+      acc + calculateProfit(item.salePrice, item.purchasePrice, item.quantity),
+    0,
+  );
 
   return (
     <div style={{ width: "8.5in", margin: "0 auto", padding: "1in" }}>
@@ -40,6 +47,13 @@ const OrderPrint = () => {
       <p>
         <strong>Date:</strong> {new Date(order.orderDate).toLocaleDateString()}
       </p>
+      <p>
+        <strong>Créé par:</strong> {order.createdBy.firstName}{" "}
+        {order.createdBy.lastName}
+      </p>
+      <p>
+        <strong>Statut:</strong> {order.status}
+      </p>
       <h4>Détails de la commande</h4>
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
@@ -50,7 +64,15 @@ const OrderPrint = () => {
             <th style={{ border: "1px solid black", padding: "8px" }}>
               Quantité
             </th>
-            <th style={{ border: "1px solid black", padding: "8px" }}>Prix</th>
+            <th style={{ border: "1px solid black", padding: "8px" }}>
+              Prix d'achat
+            </th>
+            <th style={{ border: "1px solid black", padding: "8px" }}>
+              Prix de vente
+            </th>
+            <th style={{ border: "1px solid black", padding: "8px" }}>
+              Bénéfice par produit
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -63,14 +85,28 @@ const OrderPrint = () => {
                 {item.quantity}
               </td>
               <td style={{ border: "1px solid black", padding: "8px" }}>
-                {item.price} USD
+                {item.purchasePrice || "N/A"} USD
+              </td>
+              <td style={{ border: "1px solid black", padding: "8px" }}>
+                {item.salePrice || "N/A"} USD
+              </td>
+              <td style={{ border: "1px solid black", padding: "8px" }}>
+                {calculateProfit(
+                  item.salePrice,
+                  item.purchasePrice,
+                  item.quantity,
+                ).toFixed(2)}{" "}
+                USD
               </td>
             </tr>
           ))}
         </tbody>
       </table>
       <p>
-        <strong>Total:</strong> {order.totalAmount} USD
+        <strong>Total:</strong> {order.totalAmount.toFixed(2)} USD
+      </p>
+      <p>
+        <strong>Bénéfice total:</strong> {totalProfit.toFixed(2)} USD
       </p>
       <button
         onClick={() => navigate("/orders")}
