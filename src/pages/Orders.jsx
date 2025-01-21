@@ -210,11 +210,13 @@ const Orders = () => {
   };
 
   const filteredOrders = orders.filter((order) => {
-    const supplierName = order.supplier.companyName.toLowerCase();
+    const supplierName =
+      order.supplier?.companyName?.toLowerCase() || "Fournisseur supprimé";
     const status = order.status.toLowerCase();
     const totalAmount = order.totalAmount.toString();
     const orderId = order._id.toLowerCase();
     const searchLower = searchOrder.toLowerCase();
+
     return (
       supplierName.includes(searchLower) ||
       status.includes(searchLower) ||
@@ -267,11 +269,14 @@ const Orders = () => {
                   <th>Actions</th>
                 </tr>
               </thead>
+
               <tbody>
                 {currentOrders.map((order) => (
                   <tr key={order._id}>
                     <td>{order._id}</td>
-                    <td>{order.supplier.companyName}</td>
+                    <td>
+                      {order.supplier?.companyName || "Fournisseur supprimé"}
+                    </td>
                     <td>{new Date(order.orderDate).toLocaleDateString()}</td>
                     <td>{order.status}</td>
                     <td>{order.totalAmount} USD</td>
@@ -354,7 +359,7 @@ const Orders = () => {
         </Col>
       </Row>
 
-      <Modal show={showModal} onHide={handleCloseModal} size="lg">
+      <Modal show={showModal} onHide={handleCloseModal} size="lg" centered>
         <Modal.Header closeButton>
           <Modal.Title>
             {currentOrder ? "Modifier" : "Créer"} une commande
@@ -362,18 +367,20 @@ const Orders = () => {
         </Modal.Header>
         <Modal.Body>
           <Form onSubmit={handleSubmit}>
+            {/* Fournisseur Section */}
             <Row>
-              <Col>
-                <h5>Fournisseurs</h5>
+              <Col md={6}>
+                <h5 className="mb-3">Fournisseurs</h5>
                 <Form.Control
                   type="text"
                   placeholder="Rechercher un fournisseur"
                   value={searchSupplier}
                   onChange={(e) => setSearchSupplier(e.target.value)}
+                  className="mb-2"
                 />
                 <div
-                  className="mt-2"
-                  style={{ maxHeight: "200px", overflowY: "scroll" }}
+                  className="p-2 border rounded bg-light"
+                  style={{ maxHeight: "200px", overflowY: "auto" }}
                 >
                   {suppliers
                     .filter((supplier) =>
@@ -388,33 +395,42 @@ const Orders = () => {
                       >
                         <span>{supplier.companyName}</span>
                         <Button
-                          variant="outline-primary"
+                          variant={
+                            selectedSupplier?._id === supplier._id
+                              ? "success"
+                              : "outline-primary"
+                          }
                           size="sm"
                           onClick={() => setSelectedSupplier(supplier)}
                         >
-                          Sélectionner
+                          {selectedSupplier?._id === supplier._id
+                            ? "Sélectionné"
+                            : "Sélectionner"}
                         </Button>
                       </div>
                     ))}
                 </div>
                 {selectedSupplier && (
-                  <div className="mt-2">
+                  <Alert variant="success" className="mt-2">
                     <strong>Fournisseur sélectionné :</strong>{" "}
                     {selectedSupplier.companyName}
-                  </div>
+                  </Alert>
                 )}
               </Col>
-              <Col>
-                <h5>Produits</h5>
+
+              {/* Produits Section */}
+              <Col md={6}>
+                <h5 className="mb-3">Produits</h5>
                 <Form.Control
                   type="text"
                   placeholder="Rechercher un produit"
                   value={searchProduct}
                   onChange={(e) => setSearchProduct(e.target.value)}
+                  className="mb-2"
                 />
                 <div
-                  className="mt-2"
-                  style={{ maxHeight: "200px", overflowY: "scroll" }}
+                  className="p-2 border rounded bg-light"
+                  style={{ maxHeight: "200px", overflowY: "auto" }}
                 >
                   {products
                     .filter((product) =>
@@ -429,8 +445,7 @@ const Orders = () => {
                       >
                         <span>
                           {product.productName} - Stock :{" "}
-                          {product.stockQuantity} - Prix : {product.priceUSD}{" "}
-                          USD
+                          {product.stockQuantity} - {product.priceUSD} USD
                         </span>
                         <Button
                           variant="outline-primary"
@@ -445,73 +460,81 @@ const Orders = () => {
               </Col>
             </Row>
 
+            {/* Produits Sélectionnés */}
             <h5 className="mt-4">Produits sélectionnés</h5>
-            <Table striped bordered hover>
-              <thead>
-                <tr>
-                  <th>Nom</th>
-                  <th>Quantité</th>
-                  <th>Prix d'achat (USD)</th>
-                  <th>Prix de vente (USD)</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {selectedProducts.map((product, index) => (
-                  <tr key={`${product.productId}-${index}`}>
-                    <td>{product.productName}</td>
-                    <td>
-                      <Form.Control
-                        type="number"
-                        min="1"
-                        value={product.quantity}
-                        onChange={(e) =>
-                          handleChangeProduct(index, "quantity", e.target.value)
-                        }
-                      />
-                    </td>
-                    <td>
-                      <Form.Control
-                        type="number"
-                        min="0"
-                        value={product.purchasePrice}
-                        onChange={(e) =>
-                          handleChangeProduct(
-                            index,
-                            "purchasePrice",
-                            e.target.value,
-                          )
-                        }
-                      />
-                    </td>
-                    <td>
-                      <Form.Control
-                        type="number"
-                        min="0"
-                        value={product.salePrice}
-                        onChange={(e) =>
-                          handleChangeProduct(
-                            index,
-                            "salePrice",
-                            e.target.value,
-                          )
-                        }
-                      />
-                    </td>
-                    <td>
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={() => handleRemoveProduct(product.productId)}
-                      >
-                        Retirer
-                      </Button>
-                    </td>
+            <div style={{ maxHeight: "300px", overflowY: "auto" }}>
+              <Table striped bordered hover className="mt-3">
+                <thead>
+                  <tr>
+                    <th>Nom</th>
+                    <th>Quantité</th>
+                    <th>Prix d'achat (USD)</th>
+                    <th>Prix de vente (USD)</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </Table>
+                </thead>
+                <tbody>
+                  {selectedProducts.map((product, index) => (
+                    <tr key={`${product.productId}-${index}`}>
+                      <td>{product.productName}</td>
+                      <td>
+                        <Form.Control
+                          type="number"
+                          min="1"
+                          value={product.quantity}
+                          onChange={(e) =>
+                            handleChangeProduct(
+                              index,
+                              "quantity",
+                              e.target.value,
+                            )
+                          }
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="number"
+                          min="0"
+                          value={product.purchasePrice}
+                          onChange={(e) =>
+                            handleChangeProduct(
+                              index,
+                              "purchasePrice",
+                              e.target.value,
+                            )
+                          }
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="number"
+                          min="0"
+                          value={product.salePrice}
+                          onChange={(e) =>
+                            handleChangeProduct(
+                              index,
+                              "salePrice",
+                              e.target.value,
+                            )
+                          }
+                        />
+                      </td>
+                      <td>
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={() => handleRemoveProduct(product.productId)}
+                        >
+                          Retirer
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
 
+            {/* Submit Button */}
             <Button variant="primary" type="submit" className="mt-3 w-100">
               {currentOrder ? "Modifier" : "Créer"} la commande
             </Button>
