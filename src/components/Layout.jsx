@@ -40,7 +40,7 @@ const Layout = ({ children }) => {
             position: "fixed",
           }}
         >
-          <h4 className="text-center mb-4">Mon Application</h4>
+          <h4 className="text-center mb-4">Lymoner</h4>
           <Nav className="flex-column">
             <NavLink
               to="/dashboard"

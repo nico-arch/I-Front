@@ -35,6 +35,7 @@ const Products = () => {
   const [formData, setFormData] = useState({
     productName: "",
     description: "",
+    barcode: "",
     priceUSD: "",
     stockQuantity: "",
     categories: [],
@@ -68,6 +69,7 @@ const Products = () => {
         : {
             productName: "",
             description: "",
+            barcode: "",
             priceUSD: "",
             stockQuantity: "",
             categories: [],
@@ -132,9 +134,12 @@ const Products = () => {
   const filteredProducts = products.filter((product) => {
     const productName = product.productName?.toLowerCase() || "";
     const description = product.description?.toLowerCase() || "";
+    const barcode = product.barcode?.toLowerCase() || "";
     const searchLower = searchTerm.toLowerCase();
     return (
-      productName.includes(searchLower) || description.includes(searchLower)
+      productName.includes(searchLower) ||
+      description.includes(searchLower) ||
+      barcode.includes(searchLower)
     );
   });
 
@@ -158,7 +163,7 @@ const Products = () => {
     const printableContent = outOfStockProducts
       .map(
         (product) =>
-          `Nom : ${product.productName}, Description : ${product.description}, Prix (USD) : ${product.priceUSD}`,
+          `Nom : ${product.productName}, Description : ${product.description}, Code-barres : ${product.barcode}, Prix (USD) : ${product.priceUSD}`,
       )
       .join("\n");
     const newWindow = window.open();
@@ -200,7 +205,7 @@ const Products = () => {
                 <FaSearch className="me-2" />
                 <Form.Control
                   type="text"
-                  placeholder="Rechercher un produit..."
+                  placeholder="Rechercher un produit par nom, description ou code-barres..."
                   value={searchTerm}
                   onChange={handleSearch}
                   style={{ width: "300px" }}
@@ -213,6 +218,7 @@ const Products = () => {
                 <tr>
                   <th>Nom du produit</th>
                   <th>Description</th>
+                  <th>Code-barres</th>
                   <th>Prix (USD)</th>
                   <th>Stock</th>
                   <th>Catégories</th>
@@ -224,6 +230,7 @@ const Products = () => {
                   <tr key={product._id}>
                     <td>{product.productName}</td>
                     <td>{product.description}</td>
+                    <td>{product.barcode}</td>
                     <td>{product.priceUSD}</td>
                     <td>{product.stockQuantity}</td>
                     <td>
@@ -293,6 +300,16 @@ const Products = () => {
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
+              />
+            </Form.Group>
+            <Form.Group controlId="barcode" className="mt-3">
+              <Form.Label>Code-barres</Form.Label>
+              <Form.Control
+                type="text"
+                name="barcode"
+                value={formData.barcode}
+                onChange={handleChange}
+                required
               />
             </Form.Group>
             <Form.Group controlId="priceUSD" className="mt-3">
