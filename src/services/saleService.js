@@ -38,7 +38,8 @@ export const addSale = async (saleData) => {
     return response.data;
   } catch (err) {
     throw new Error(
-      err.response?.data?.msg || "Erreur lors de la création de la vente",
+      err.response?.data?.msg ||
+        "Erreur lors de la création de la vente, error: " + err,
     );
   }
 };

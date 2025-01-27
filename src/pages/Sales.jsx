@@ -36,6 +36,8 @@ const Sales = () => {
   const [products, setProducts] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [selectedClient, setSelectedClient] = useState(null);
+  const [searchClient, setSearchClient] = useState("");
+  const [searchProduct, setSearchProduct] = useState("");
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [currentSale, setCurrentSale] = useState(null);
@@ -85,8 +87,11 @@ const Sales = () => {
         ? sale.products.map((p) => ({
             productId: p.product._id,
             productName: p.product.productName,
+            barcode: p.product.barcode,
             quantity: p.quantity,
             price: p.price,
+            tax: p.tax,
+            discount: p.discount,
           }))
         : [],
     );
@@ -109,8 +114,11 @@ const Sales = () => {
       {
         productId: product._id,
         productName: product.productName,
+        barcode: product.barcode,
         quantity: 1,
         price: product.priceUSD,
+        tax: 0,
+        discount: 0,
       },
     ]);
   };
@@ -124,6 +132,12 @@ const Sales = () => {
   const handleChangeProduct = (index, field, value) => {
     const updatedProducts = [...selectedProducts];
     updatedProducts[index][field] = value;
+    updatedProducts[index].total =
+      (updatedProducts[index].price +
+        (updatedProducts[index].price * updatedProducts[index].tax) / 100 -
+        (updatedProducts[index].price * updatedProducts[index].discount) /
+          100) *
+      updatedProducts[index].quantity;
     setSelectedProducts(updatedProducts);
   };
 
@@ -199,6 +213,18 @@ const Sales = () => {
       saleId.includes(searchLower)
     );
   });
+
+  const filteredClients = clients.filter((client) =>
+    `${client.firstName} ${client.lastName}`
+      .toLowerCase()
+      .includes(searchClient.toLowerCase()),
+  );
+
+  const filteredProducts = products.filter(
+    (product) =>
+      product.productName.toLowerCase().includes(searchProduct.toLowerCase()) ||
+      product.barcode?.toLowerCase().includes(searchProduct.toLowerCase()),
+  );
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -320,15 +346,15 @@ const Sales = () => {
                 <Form.Control
                   type="text"
                   placeholder="Rechercher un client"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  value={searchClient}
+                  onChange={(e) => setSearchClient(e.target.value)}
                   className="mb-2"
                 />
                 <div
                   className="p-2 border rounded bg-light"
                   style={{ maxHeight: "200px", overflowY: "auto" }}
                 >
-                  {clients.map((client) => (
+                  {filteredClients.map((client) => (
                     <div
                       key={client._id}
                       className="d-flex justify-content-between align-items-center my-2"
@@ -350,12 +376,6 @@ const Sales = () => {
                     </div>
                   ))}
                 </div>
-                {selectedClient && (
-                  <Alert variant="success" className="mt-2">
-                    <strong>Client sélectionné :</strong>{" "}
-                    {`${selectedClient.firstName} ${selectedClient.lastName}`}
-                  </Alert>
-                )}
               </Col>
 
               <Col md={6}>
@@ -363,21 +383,22 @@ const Sales = () => {
                 <Form.Control
                   type="text"
                   placeholder="Rechercher un produit"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  value={searchProduct}
+                  onChange={(e) => setSearchProduct(e.target.value)}
                   className="mb-2"
                 />
                 <div
                   className="p-2 border rounded bg-light"
                   style={{ maxHeight: "200px", overflowY: "auto" }}
                 >
-                  {products.map((product) => (
+                  {filteredProducts.map((product) => (
                     <div
                       key={product._id}
                       className="d-flex justify-content-between align-items-center my-2"
                     >
                       <span>
-                        {product.productName} - {product.priceUSD} USD
+                        {product.productName} - Barcode: {product.barcode} -{" "}
+                        {product.priceUSD} USD
                       </span>
                       <Button
                         variant="outline-primary"
@@ -397,8 +418,12 @@ const Sales = () => {
               <thead>
                 <tr>
                   <th>Nom</th>
+                  <th>Barcode</th>
                   <th>Quantité</th>
                   <th>Prix (USD)</th>
+                  <th>Tax</th>
+                  <th>Remise</th>
+                  <th>Total</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -406,17 +431,64 @@ const Sales = () => {
                 {selectedProducts.map((product, index) => (
                   <tr key={index}>
                     <td>{product.productName}</td>
+                    <td>{product.barcode}</td>
                     <td>
                       <Form.Control
                         type="number"
                         min="1"
                         value={product.quantity}
                         onChange={(e) =>
-                          handleChangeProduct(index, "quantity", e.target.value)
+                          handleChangeProduct(
+                            index,
+                            "quantity",
+                            parseFloat(e.target.value),
+                          )
                         }
                       />
                     </td>
-                    <td>{product.price}</td>
+                    <td>
+                      <Form.Control
+                        type="number"
+                        min="0"
+                        value={product.price}
+                        onChange={(e) =>
+                          handleChangeProduct(
+                            index,
+                            "price",
+                            parseFloat(e.target.value),
+                          )
+                        }
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="number"
+                        min="0"
+                        value={product.tax}
+                        onChange={(e) =>
+                          handleChangeProduct(
+                            index,
+                            "tax",
+                            parseFloat(e.target.value),
+                          )
+                        }
+                      />
+                    </td>
+                    <td>
+                      <Form.Control
+                        type="number"
+                        min="0"
+                        value={product.discount}
+                        onChange={(e) =>
+                          handleChangeProduct(
+                            index,
+                            "discount",
+                            parseFloat(e.target.value),
+                          )
+                        }
+                      />
+                    </td>
+                    <td>{product.total?.toFixed(2) || 0}</td>
                     <td>
                       <Button
                         variant="outline-danger"
