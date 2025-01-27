@@ -16,6 +16,7 @@ import ExchangeRate from "./pages/ExchangeRate"; // Importer le composant Exchan
 import Suppliers from "./pages/Suppliers"; // Importer le composant Suppliers
 import Orders from "./pages/Orders"; // Importer le composant Orders
 import OrderPrint from "./pages/OrderPrint"; // Importer le composant OrderPrint
+import Sales from "./pages/Sales"; // Page pour la gestion des ventes
 
 const App = () => {
   // Fonction pour vérifier si l'utilisateur est authentifié
@@ -138,6 +139,15 @@ const App = () => {
         <Route
           path="/orders/print/:id"
           element={isAuthenticated() ? <OrderPrint /> : <Navigate to="/" />}
+        />
+
+        <Route
+          path="/sales"
+          element={
+            <Layout>
+              <Sales /> {/* Section pour la gestion des ventes */}
+            </Layout>
+          }
         />
 
         {/* Ajouter d'autres routes ici si nécessaire */}
