@@ -62,14 +62,28 @@ const Sales = () => {
     }
   };
 
-  const fetchClients = async () => {
+  /*const fetchClients = async () => {
     try {
       const clientsData = await getClients();
       setClients(clientsData);
     } catch (err) {
       setError("Erreur lors du chargement des clients.");
     }
+  };*/
+
+  const fetchClients = async () => {
+    try {
+      const clientsData = await getClients();
+      console.log("Liste des clients :", clientsData); // Afficher la liste des clients
+      setClients(clientsData);
+    } catch (err) {
+      setError("Erreur lors du chargement des clients.");
+    }
   };
+
+  useEffect(() => {
+    console.log("Clients dans l'état :", clients); // Vérifier l'état des clients
+  }, [clients]);
 
   const fetchProducts = async () => {
     try {
@@ -168,7 +182,7 @@ const Sales = () => {
       fetchSales();
       handleCloseModal();
     } catch (err) {
-      setError("Erreur lors de la création/modification de la vente.");
+      setError("Erreur lors de la création/modification de la vente." + err);
     }
   };
 
@@ -215,7 +229,7 @@ const Sales = () => {
   });
 
   const filteredClients = clients.filter((client) =>
-    `${client.firstName} ${client.lastName}`
+    `${client.companyName} ${client.lastName}`
       .toLowerCase()
       .includes(searchClient.toLowerCase()),
   );
@@ -359,7 +373,7 @@ const Sales = () => {
                       key={client._id}
                       className="d-flex justify-content-between align-items-center my-2"
                     >
-                      <span>{`${client.firstName} ${client.lastName}`}</span>
+                      <span>{`${client.companyName}`}</span>
                       <Button
                         variant={
                           selectedClient?._id === client._id
