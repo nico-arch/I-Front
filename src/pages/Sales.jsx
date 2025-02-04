@@ -28,12 +28,20 @@ import {
 } from "../services/saleService";
 import { getClients } from "../services/clientService";
 import { getProducts } from "../services/productService";
+import { getCurrencies } from "../services/currencyService";
+import { getCurrentRate } from "../services/exchangeRateService";
 import { useNavigate } from "react-router-dom";
 
 const Sales = () => {
+  // États liés aux données et à la gestion des ventes
   const [sales, setSales] = useState([]);
   const [clients, setClients] = useState([]);
   const [products, setProducts] = useState([]);
+  // États pour la gestion des devises et du taux de change
+  const [currencies, setCurrencies] = useState([]);
+  const [exchangeRate, setExchangeRate] = useState(1);
+  const [currency, setCurrency] = useState("USD"); // Stocke le code de la devise
+
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [selectedClient, setSelectedClient] = useState(null);
   const [searchClient, setSearchClient] = useState("");
@@ -51,8 +59,11 @@ const Sales = () => {
     fetchSales();
     fetchClients();
     fetchProducts();
+    fetchCurrencies();
+    fetchExchangeRate();
   }, []);
 
+  // Récupération des ventes depuis l'API
   const fetchSales = async () => {
     try {
       const salesData = await getSales();
@@ -62,29 +73,17 @@ const Sales = () => {
     }
   };
 
-  /*const fetchClients = async () => {
-    try {
-      const clientsData = await getClients();
-      setClients(clientsData);
-    } catch (err) {
-      setError("Erreur lors du chargement des clients.");
-    }
-  };*/
-
+  // Récupération des clients
   const fetchClients = async () => {
     try {
       const clientsData = await getClients();
-      console.log("Liste des clients :", clientsData); // Afficher la liste des clients
       setClients(clientsData);
     } catch (err) {
       setError("Erreur lors du chargement des clients.");
     }
   };
 
-  useEffect(() => {
-    console.log("Clients dans l'état :", clients); // Vérifier l'état des clients
-  }, [clients]);
-
+  // Récupération des produits
   const fetchProducts = async () => {
     try {
       const productsData = await getProducts();
@@ -94,23 +93,62 @@ const Sales = () => {
     }
   };
 
+  // Récupération des devises
+  const fetchCurrencies = async () => {
+    try {
+      const currenciesData = await getCurrencies();
+      setCurrencies(currenciesData);
+    } catch (err) {
+      setError("Erreur lors du chargement des devises.");
+    }
+  };
+
+  // Récupération du taux de change actuel
+  const fetchExchangeRate = async () => {
+    try {
+      const rateData = await getCurrentRate();
+      // L'API renvoie par exemple { currentRate: 150 }
+      setExchangeRate(rateData.currentRate);
+    } catch (err) {
+      setError("Erreur lors du chargement du taux de change.");
+    }
+  };
+
+  // Affichage du modal pour créer/modifier une vente
   const handleShowModal = (sale = null) => {
     setCurrentSale(sale);
-    setSelectedProducts(
-      sale
-        ? sale.products.map((p) => ({
-            productId: p.product._id,
-            productName: p.product.productName,
-            barcode: p.product.barcode,
-            quantity: p.quantity,
-            price: p.price,
-            tax: p.tax,
-            discount: p.discount,
-          }))
-        : [],
-    );
-    setSelectedClient(sale ? sale.client : null);
+    if (sale) {
+      // Pour une vente existante, on charge les produits en utilisant leur prix de base (en USD)
+      const loadedProducts = sale.products.map((p) => {
+        const basePrice = p.price; // stocké en USD
+        const displayedPrice =
+          currency === "USD" ? basePrice : basePrice * exchangeRate;
+        const total =
+          (displayedPrice +
+            (displayedPrice * p.tax) / 100 -
+            (displayedPrice * p.discount) / 100) *
+          p.quantity;
+        return {
+          productId: p.product._id,
+          productName: p.product.productName,
+          barcode: p.product.barcode,
+          quantity: p.quantity,
+          basePrice: basePrice,
+          price: displayedPrice,
+          tax: p.tax,
+          discount: p.discount,
+          total: total,
+        };
+      });
+      setSelectedProducts(loadedProducts);
+      setSelectedClient(sale.client);
+    } else {
+      setSelectedProducts([]);
+      setSelectedClient(null);
+    }
     setShowModal(true);
+    setError("");
+    setSuccess("");
   };
 
   const handleCloseModal = () => {
@@ -118,11 +156,15 @@ const Sales = () => {
     setError("");
   };
 
+  // Ajout d'un produit à la vente en cours
   const handleAddProduct = (product) => {
     if (selectedProducts.find((p) => p.productId === product._id)) {
       setError("Ce produit a déjà été ajouté.");
       return;
     }
+    const basePrice = product.priceUSD; // prix en USD
+    const convertedPrice =
+      currency === "USD" ? basePrice : basePrice * exchangeRate;
     setSelectedProducts([
       ...selectedProducts,
       {
@@ -130,22 +172,36 @@ const Sales = () => {
         productName: product.productName,
         barcode: product.barcode,
         quantity: 1,
-        price: product.priceUSD,
+        basePrice: basePrice,
+        price: convertedPrice,
         tax: 0,
         discount: 0,
+        total: convertedPrice,
       },
     ]);
   };
 
+  // Suppression d'un produit sélectionné
   const handleRemoveProduct = (productId) => {
     setSelectedProducts(
       selectedProducts.filter((p) => p.productId !== productId),
     );
   };
 
+  // Modification d'un champ (quantité, prix, taxe ou remise) d'un produit sélectionné
   const handleChangeProduct = (index, field, value) => {
     const updatedProducts = [...selectedProducts];
-    updatedProducts[index][field] = value;
+    if (field === "price") {
+      if (currency === "USD") {
+        updatedProducts[index].basePrice = value;
+        updatedProducts[index].price = value;
+      } else {
+        updatedProducts[index].basePrice = value / exchangeRate;
+        updatedProducts[index].price = value;
+      }
+    } else {
+      updatedProducts[index][field] = value;
+    }
     updatedProducts[index].total =
       (updatedProducts[index].price +
         (updatedProducts[index].price * updatedProducts[index].tax) / 100 -
@@ -155,6 +211,26 @@ const Sales = () => {
     setSelectedProducts(updatedProducts);
   };
 
+  // Gestion du changement de devise
+  const handleCurrencyChange = (e) => {
+    const selectedCurrency = e.target.value;
+    const updatedProducts = selectedProducts.map((product) => {
+      const newPrice =
+        selectedCurrency === "USD"
+          ? product.basePrice
+          : product.basePrice * exchangeRate;
+      const newTotal =
+        (newPrice +
+          (newPrice * product.tax) / 100 -
+          (newPrice * product.discount) / 100) *
+        product.quantity;
+      return { ...product, price: newPrice, total: newTotal };
+    });
+    setSelectedProducts(updatedProducts);
+    setCurrency(selectedCurrency);
+  };
+
+  // Soumission du formulaire pour créer ou modifier une vente
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedClient) {
@@ -166,9 +242,28 @@ const Sales = () => {
       return;
     }
 
+    // Recherche de l'objet devise correspondant au code sélectionné
+    const selectedCurrencyObj = currencies.find(
+      (cur) => cur.currencyCode === currency,
+    );
+    if (!selectedCurrencyObj) {
+      setError("La devise sélectionnée est introuvable.");
+      return;
+    }
+
+    const productsForSale = selectedProducts.map((product) => ({
+      productId: product.productId,
+      quantity: product.quantity,
+      price: product.basePrice, // En USD
+      tax: product.tax,
+      discount: product.discount,
+    }));
+
     const saleData = {
       clientId: selectedClient._id,
-      products: selectedProducts,
+      currencyId: selectedCurrencyObj._id, // Ajout de la devise
+      products: productsForSale,
+      // remarks, creditSale, etc. peuvent être ajoutés ici si besoin
     };
 
     try {
@@ -182,7 +277,7 @@ const Sales = () => {
       fetchSales();
       handleCloseModal();
     } catch (err) {
-      setError("Erreur lors de la création/modification de la vente." + err);
+      setError("Erreur lors de la création/modification de la vente. " + err);
     }
   };
 
@@ -212,6 +307,7 @@ const Sales = () => {
     navigate(`/sales/print/${saleId}`);
   };
 
+  // Filtres pour la recherche dans la liste des ventes, clients et produits
   const filteredSales = sales.filter((sale) => {
     const clientName =
       `${sale.client?.firstName || ""} ${sale.client?.lastName || ""}`.toLowerCase();
@@ -219,7 +315,6 @@ const Sales = () => {
     const totalAmount = sale.totalAmount.toString();
     const saleId = sale._id.toLowerCase();
     const searchLower = search.toLowerCase();
-
     return (
       clientName.includes(searchLower) ||
       status.includes(searchLower) ||
@@ -260,7 +355,6 @@ const Sales = () => {
                 <FaPlus className="me-2" />
                 Créer une vente
               </Button>
-
               <div className="d-flex align-items-center">
                 <FaSearch className="me-2" />
                 <Form.Control
@@ -288,14 +382,14 @@ const Sales = () => {
                 {currentSales.map((sale) => (
                   <tr key={sale._id}>
                     <td>{sale._id}</td>
-                    <td>
-                      {`${sale.client?.firstName || ""} ${
-                        sale.client?.lastName || ""
-                      }`}
-                    </td>
+                    <td>{`${sale.client?.firstName || ""} ${sale.client?.lastName || ""}`}</td>
                     <td>{new Date(sale.createdAt).toLocaleDateString()}</td>
                     <td>{sale.saleStatus}</td>
-                    <td>{sale.totalAmount} USD</td>
+                    <td>
+                      {currency === "USD"
+                        ? `${sale.totalAmount} USD`
+                        : `${(sale.totalAmount * exchangeRate).toFixed(2)} ${currency}`}
+                    </td>
                     <td>
                       <Button
                         variant="warning"
@@ -355,6 +449,7 @@ const Sales = () => {
         <Modal.Body>
           <Form onSubmit={handleSubmit}>
             <Row>
+              {/* Colonne Clients */}
               <Col md={6}>
                 <h5 className="mb-3">Clients</h5>
                 <Form.Control
@@ -373,7 +468,7 @@ const Sales = () => {
                       key={client._id}
                       className="d-flex justify-content-between align-items-center my-2"
                     >
-                      <span>{`${client.companyName}`}</span>
+                      <span>{client.companyName}</span>
                       <Button
                         variant={
                           selectedClient?._id === client._id
@@ -392,6 +487,7 @@ const Sales = () => {
                 </div>
               </Col>
 
+              {/* Colonne Produits */}
               <Col md={6}>
                 <h5 className="mb-3">Produits</h5>
                 <Form.Control
@@ -427,6 +523,24 @@ const Sales = () => {
               </Col>
             </Row>
 
+            {/* Section de sélection de la devise et affichage du taux de change */}
+            <Row className="mt-3">
+              <Col md={6}>
+                <h5>Devise</h5>
+                <Form.Select value={currency} onChange={handleCurrencyChange}>
+                  {currencies.map((cur) => (
+                    <option key={cur._id} value={cur.currencyCode}>
+                      {cur.currencyName} ({cur.currencyCode})
+                    </option>
+                  ))}
+                </Form.Select>
+                <h6 className="mt-2">
+                  Taux de change actuel : {exchangeRate ? exchangeRate : "N/A"}
+                </h6>
+              </Col>
+            </Row>
+
+            {/* Tableau des produits sélectionnés */}
             <h5 className="mt-4">Produits sélectionnés</h5>
             <Table striped bordered hover className="mt-3">
               <thead>
@@ -434,10 +548,10 @@ const Sales = () => {
                   <th>Nom</th>
                   <th>Barcode</th>
                   <th>Quantité</th>
-                  <th>Prix (USD)</th>
-                  <th>Tax</th>
-                  <th>Remise</th>
-                  <th>Total</th>
+                  <th>Prix ({currency})</th>
+                  <th>Tax (%)</th>
+                  <th>Remise (%)</th>
+                  <th>Total ({currency})</th>
                   <th>Actions</th>
                 </tr>
               </thead>

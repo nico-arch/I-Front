@@ -1,5 +1,6 @@
 import axios from "axios";
 
+// Assurez-vous que la variable globale API_URL_V1 est bien définie dans votre projet
 const API_ENDPOINT = `${API_URL_V1}/sales`;
 const headers = {
   Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -35,6 +36,7 @@ export const addSale = async (saleData) => {
     const response = await axios.post(`${API_ENDPOINT}/add`, saleData, {
       headers,
     });
+    console.log("Sale response data", response.data);
     return response.data;
   } catch (err) {
     throw new Error(
