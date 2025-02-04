@@ -13,7 +13,8 @@ export const getSales = async () => {
     return response.data;
   } catch (err) {
     throw new Error(
-      err.response?.data?.msg || "Erreur lors de la récupération des ventes",
+      err.response?.data?.msg ||
+        "Erreur lors de la récupération des ventes " + err,
     );
   }
 };
@@ -25,7 +26,8 @@ export const getSaleById = async (id) => {
     return response.data;
   } catch (err) {
     throw new Error(
-      err.response?.data?.msg || "Erreur lors de la récupération de la vente",
+      err.response?.data?.msg ||
+        "Erreur lors de la récupération de la vente " + err,
     );
   }
 };
@@ -55,7 +57,8 @@ export const editSale = async (id, saleData) => {
     return response.data;
   } catch (err) {
     throw new Error(
-      err.response?.data?.msg || "Erreur lors de la modification de la vente",
+      err.response?.data?.msg ||
+        "Erreur lors de la modification de la vente " + err,
     );
   }
 };
@@ -69,7 +72,8 @@ export const cancelSale = async (id) => {
     return response.data;
   } catch (err) {
     throw new Error(
-      err.response?.data?.msg || "Erreur lors de l'annulation de la vente",
+      err.response?.data?.msg ||
+        "Erreur lors de l'annulation de la vente " + err,
     );
   }
 };
@@ -82,8 +86,10 @@ export const deleteSale = async (id) => {
     });
     return response.data;
   } catch (err) {
+    //console.log(err);
     throw new Error(
-      err.response?.data?.msg || "Erreur lors de la suppression de la vente",
+      err.response?.data?.msg ||
+        "Erreur lors de la suppression de la vente " + err,
     );
   }
 };
