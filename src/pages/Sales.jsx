@@ -424,10 +424,12 @@ const Sales = () => {
                       <td>{sale.saleStatus}</td>
                       <td>{saleType}</td>
                       <td>
-                        {currency === "USD"
-                          ? `${sale.totalAmount} USD`
-                          : `${(sale.totalAmount * exchangeRate).toFixed(2)} ${currency}`}
+                        {sale.totalAmount}{" "}
+                        {sale.currency && sale.currency.currencyCode
+                          ? sale.currency.currencyCode
+                          : "USD"}
                       </td>
+
                       <td>
                         <Button
                           variant="warning"

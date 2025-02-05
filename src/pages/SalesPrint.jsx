@@ -4,6 +4,7 @@ import { getSaleById } from "../services/saleService";
 import { getUserById } from "../services/userService";
 import { Table, Button, Spinner, Container } from "react-bootstrap";
 import Barcode from "react-barcode";
+import "./printStyles.css"; // On suppose que vous importez un fichier CSS dédié à l'impression
 
 const SalesPrint = () => {
   const { id } = useParams();
@@ -64,6 +65,12 @@ const SalesPrint = () => {
     );
   }
 
+  // Récupérer le code de la devise enregistrée pour la vente
+  const currencyCode =
+    sale.currency && sale.currency.currencyCode
+      ? sale.currency.currencyCode
+      : "USD";
+
   // Exemple de fonction de calcul du profit (à adapter selon vos besoins)
   const calculateProfit = (salePrice, purchasePrice, quantity) => {
     return (salePrice - purchasePrice) * quantity;
@@ -89,7 +96,13 @@ const SalesPrint = () => {
 
       {/* Génération du code-barres basé sur l'ID de la vente */}
       <div className="text-center my-3">
-        <Barcode value={sale._id} />
+        <Barcode
+          value={sale._id}
+          width={1} // réduire la largeur des barres
+          height={50} // définir une hauteur plus petite
+          fontSize={12} // réduire la taille du texte affiché
+          margin={1} // ajuster la marge
+        />
       </div>
 
       <hr />
@@ -131,10 +144,10 @@ const SalesPrint = () => {
           <tr>
             <th>Produit</th>
             <th>Quantité</th>
-            <th>Prix unitaire (USD)</th>
+            <th>Prix unitaire ({currencyCode})</th>
             <th>Tax (%)</th>
             <th>Remise (%)</th>
-            <th>Total (USD)</th>
+            <th>Total ({currencyCode})</th>
           </tr>
         </thead>
         <tbody>
@@ -142,10 +155,14 @@ const SalesPrint = () => {
             <tr key={item.product._id}>
               <td>{item.product.productName}</td>
               <td>{item.quantity}</td>
-              <td>{Number(item.price).toFixed(2)}</td>
+              <td>
+                {Number(item.price).toFixed(2)} {currencyCode}
+              </td>
               <td>{item.tax}</td>
               <td>{item.discount}</td>
-              <td>{Number(item.total).toFixed(2)}</td>
+              <td>
+                {Number(item.total).toFixed(2)} {currencyCode}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -153,21 +170,22 @@ const SalesPrint = () => {
 
       <p>
         <strong>Total de la vente :</strong>{" "}
-        {Number(sale.totalAmount).toFixed(2)} USD
+        {Number(sale.totalAmount).toFixed(2)} {currencyCode}
       </p>
       {sale.purchasePrice && (
         <p>
-          <strong>Bénéfice total :</strong> {totalProfit.toFixed(2)} USD
+          <strong>Bénéfice total :</strong> {totalProfit.toFixed(2)}{" "}
+          {currencyCode}
         </p>
       )}
 
-      <div className="text-center mt-4">
+      <div className="text-center mt-4 no-print">
         <Button variant="primary" onClick={() => navigate("/sales")}>
           Retour
         </Button>
         <Button
           variant="secondary"
-          className="ms-2"
+          className="ms-2 no-print"
           onClick={() => window.print()}
         >
           Imprimer

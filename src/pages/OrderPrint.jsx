@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getOrderById } from "../services/orderService";
 import { Table, Button, Card, Spinner, Container } from "react-bootstrap";
+import Barcode from "react-barcode";
+import "./printStyles.css"; // On suppose que vous importez un fichier CSS dédié à l'impression
 
 const OrderPrint = () => {
   const { id } = useParams();
@@ -64,6 +66,16 @@ const OrderPrint = () => {
       className="print-container"
     >
       <h2 className="text-center">Commande #{order._id}</h2>
+      {/* Génération du code-barres basé sur l'ID de la vente */}
+      <div className="text-center my-3">
+        <Barcode
+          value={order._id}
+          width={1} // réduire la largeur des barres
+          height={50} // définir une hauteur plus petite
+          fontSize={12} // réduire la taille du texte affiché
+          margin={1} // ajuster la marge
+        />
+      </div>
       <hr />
       <div>
         <p>
@@ -78,6 +90,10 @@ const OrderPrint = () => {
         <p>
           <strong>Date :</strong>{" "}
           {new Date(order.orderDate).toLocaleDateString()}
+        </p>
+        <p>
+          <strong>Heure :</strong>{" "}
+          {new Date(order.createdAt).toLocaleTimeString()}
         </p>
         <p>
           <strong>Créé par :</strong> {order.createdBy.firstName}{" "}
@@ -138,13 +154,13 @@ const OrderPrint = () => {
       <p>
         <strong>Bénéfice total :</strong> {totalProfit.toFixed(2)} USD
       </p>
-      <div className="text-center mt-4">
+      <div className="text-center mt-4 no-print">
         <Button variant="primary" onClick={() => navigate("/orders")}>
           Retour
         </Button>
         <Button
           variant="secondary"
-          className="ms-2"
+          className="ms-2 no-print"
           onClick={() => window.print()}
         >
           Imprimer
