@@ -1,7 +1,7 @@
-import axios from "axios";
-import { jwtDecode } from "jwt-decode";
+//import axios from "axios";
+//import { jwtDecode } from "jwt-decode";
 
-const API_ENDPOINT = `${API_URL_V1}/auth`;
+//const API_ENDPOINT = `${API_URL_V1}/auth`;
 
 /*export const login = async (email, password) => {
   try {
@@ -22,7 +22,7 @@ const API_ENDPOINT = `${API_URL_V1}/auth`;
     console.error("Erreur lors de la connexion :", error);
     throw error;
   }
-};*/
+};
 export const login = async (email, password) => {
   try {
     const response = await axios.post(`${API_ENDPOINT}/login`, {
@@ -60,3 +60,35 @@ export const logout = () => {
   // Supprimer le token du localStorage
   localStorage.removeItem("token");
 };*/
+import axios from "axios";
+import { jwtDecode } from "jwt-decode";
+
+const API_ENDPOINT = `${API_URL_V1}/auth`;
+
+export const login = async (email, password) => {
+  try {
+    const response = await axios.post(`${API_ENDPOINT}/login`, {
+      email,
+      password,
+    });
+    const { token } = response.data;
+    localStorage.setItem("token", token);
+    const decoded = jwtDecode(token);
+    localStorage.setItem("userId", decoded.user.id);
+    return token;
+  } catch (error) {
+    console.error("Erreur lors de la connexion :", error);
+    throw error;
+  }
+};
+
+export const isAuthenticated = () => {
+  return !!localStorage.getItem("token");
+};
+
+export const logout = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("userId");
+  // Forcer le rechargement de l'application pour effacer le cache de l'utilisateur précédent
+  //window.location.reload();
+};

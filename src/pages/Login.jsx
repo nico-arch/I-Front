@@ -19,10 +19,12 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
+    navigate("/dashboard");
     e.preventDefault();
     try {
       await login(email, password);
-      navigate("/dashboard"); // Rediriger vers le tableau de bord après connexion
+      window.location.reload();
+      // Rediriger vers le tableau de bord après connexion
     } catch (err) {
       setError("Identifiants invalides : " + err);
     }
