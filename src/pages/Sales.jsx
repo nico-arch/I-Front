@@ -33,43 +33,49 @@ import { getCurrentRate } from "../services/exchangeRateService";
 import { useNavigate } from "react-router-dom";
 
 const Sales = () => {
-  // États liés aux données et à la gestion des ventes
+  // États pour les données principales
   const [sales, setSales] = useState([]);
   const [clients, setClients] = useState([]);
   const [products, setProducts] = useState([]);
-  // États pour la gestion des devises et du taux de change
   const [currencies, setCurrencies] = useState([]);
+  // Taux de change et devise à utiliser pour la vente en cours
   const [exchangeRate, setExchangeRate] = useState(1);
-  const [currency, setCurrency] = useState("USD"); // Stocke le code de la devise
+  const [currency, setCurrency] = useState("USD"); // Code de la devise (modifiable en création)
 
+  // États pour la vente en cours
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [selectedClient, setSelectedClient] = useState(null);
+  const [remarks, setRemarks] = useState("");
+  const [creditSale, setCreditSale] = useState(false);
+
+  // États pour l'affichage, recherche et messages dans le modal
   const [searchClient, setSearchClient] = useState("");
   const [searchProduct, setSearchProduct] = useState("");
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [currentSale, setCurrentSale] = useState(null);
-  // Pour indiquer qu'il s'agit d'une vente à crédit (seulement lors de la création ou si modifiable)
-  const [creditSale, setCreditSale] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   const navigate = useNavigate();
 
-  // Détermine si la modification des produits est autorisée :
-  // Pour une vente nouvelle, c'est toujours possible.
-  // Pour une vente en modification, c'est possible uniquement si la vente est "pending" et n'est pas à crédit.
+  // Détermine si les produits de la vente peuvent être modifiés.
+  // En création, c'est toujours possible.
+  // En modification, c'est possible uniquement si le statut est "pending" et que la vente n'est pas à crédit.
   const canEditProducts =
     !currentSale ||
     (currentSale && currentSale.saleStatus === "pending" && !creditSale);
 
-  // Calcul du montant total de la vente (somme des totaux des produits sélectionnés)
+  // Calcul du montant total de la vente à partir des totaux des produits sélectionnés
   const totalSale = selectedProducts.reduce(
     (acc, product) => acc + product.total,
     0,
   );
 
+  // Chargement initial des données
   useEffect(() => {
     fetchSales();
     fetchClients();
@@ -78,7 +84,6 @@ const Sales = () => {
     fetchExchangeRate();
   }, []);
 
-  // Récupération des ventes depuis l'API
   const fetchSales = async () => {
     try {
       const salesData = await getSales();
@@ -88,7 +93,6 @@ const Sales = () => {
     }
   };
 
-  // Récupération des clients
   const fetchClients = async () => {
     try {
       const clientsData = await getClients();
@@ -98,7 +102,6 @@ const Sales = () => {
     }
   };
 
-  // Récupération des produits
   const fetchProducts = async () => {
     try {
       const productsData = await getProducts();
@@ -108,7 +111,6 @@ const Sales = () => {
     }
   };
 
-  // Récupération des devises
   const fetchCurrencies = async () => {
     try {
       const currenciesData = await getCurrencies();
@@ -118,26 +120,37 @@ const Sales = () => {
     }
   };
 
-  // Récupération du taux de change actuel
+  // En création, on utilise le taux actuel (déjà chargé via fetchExchangeRate).
+  // En modification, on utilisera le taux enregistré dans la vente.
   const fetchExchangeRate = async () => {
     try {
       const rateData = await getCurrentRate();
-      // L'API renvoie par exemple { currentRate: 150 }
       setExchangeRate(rateData.currentRate);
     } catch (err) {
       setError("Erreur lors du chargement du taux de change. " + err);
     }
   };
 
-  // Affichage du modal pour créer/modifier une vente
+  // Ouverture du modal de création/modification
   const handleShowModal = (sale = null) => {
+    setError("");
+    setSuccess("");
     setCurrentSale(sale);
     if (sale) {
-      // Lors de la modification, on charge les produits en utilisant leur prix de base (en USD)
+      // Mode modification : utiliser le taux enregistré dans la vente et fixer la devise
+      setExchangeRate(sale.exchangeRate);
+      setCurrency(sale.currency.currencyCode);
+      setRemarks(sale.remarks || "");
+      setCreditSale(sale.creditSale);
+      // Charger les produits à partir de la vente existante
       const loadedProducts = sale.products.map((p) => {
-        const basePrice = p.price; // le prix stocké en USD dans la vente
+        // Le prix enregistré est en USD (basePrice)
+        const basePrice = p.price;
+        // Utiliser le taux enregistré (sale.exchangeRate) pour recalculer le prix affiché
         const displayedPrice =
-          currency === "USD" ? basePrice : basePrice * exchangeRate;
+          sale.currency.currencyCode === "USD"
+            ? basePrice
+            : basePrice * sale.exchangeRate;
         const total =
           (displayedPrice +
             (displayedPrice * p.tax) / 100 -
@@ -157,15 +170,15 @@ const Sales = () => {
       });
       setSelectedProducts(loadedProducts);
       setSelectedClient(sale.client);
-      setCreditSale(sale.creditSale);
     } else {
+      // Mode création : réinitialiser les valeurs
       setSelectedProducts([]);
       setSelectedClient(null);
+      setRemarks("");
       setCreditSale(false);
+      // La devise et le taux restent ceux chargés (modifiable en création)
     }
     setShowModal(true);
-    setError("");
-    setSuccess("");
   };
 
   const handleCloseModal = () => {
@@ -173,14 +186,13 @@ const Sales = () => {
     setError("");
   };
 
-  // Ajout d'un produit à la vente en cours
-  // On affiche également la quantité en stock dans la liste des produits (voir la section "Produits" dans le modal)
+  // Ajout d'un produit depuis la liste (affichage du stock)
   const handleAddProduct = (product) => {
     if (selectedProducts.find((p) => p.productId === product._id)) {
       setError("Ce produit a déjà été ajouté.");
       return;
     }
-    const basePrice = product.priceUSD; // prix en USD
+    const basePrice = product.priceUSD;
     const convertedPrice =
       currency === "USD" ? basePrice : basePrice * exchangeRate;
     setSelectedProducts([
@@ -199,7 +211,6 @@ const Sales = () => {
     ]);
   };
 
-  // Suppression d'un produit sélectionné
   const handleRemoveProduct = (productId) => {
     setSelectedProducts(
       selectedProducts.filter((p) => p.productId !== productId),
@@ -207,12 +218,11 @@ const Sales = () => {
   };
 
   // Modification d'un champ (quantité, taxe, remise) d'un produit sélectionné
-  // Le prix ne peut pas être modifié manuellement.
+  // Le champ prix est calculé automatiquement et n'est pas modifiable
   const handleChangeProduct = (index, field, value) => {
     const updatedProducts = [...selectedProducts];
     if (field === "price") return;
     updatedProducts[index][field] = value;
-    // Recalcul du total pour ce produit
     updatedProducts[index].total =
       (updatedProducts[index].price +
         (updatedProducts[index].price * updatedProducts[index].tax) / 100 -
@@ -222,9 +232,8 @@ const Sales = () => {
     setSelectedProducts(updatedProducts);
   };
 
-  // Gestion du changement de devise
-  // Pour chaque produit, on recalcule le prix affiché à partir de sa valeur de base (en USD)
-  // En mode création, la devise est modifiable ; en modification, le sélecteur est désactivé.
+  // Gestion du changement de devise en mode création
+  // En modification, la devise est figée.
   const handleCurrencyChange = (e) => {
     const selectedCurrency = e.target.value;
     const updatedProducts = selectedProducts.map((product) => {
@@ -243,7 +252,7 @@ const Sales = () => {
     setCurrency(selectedCurrency);
   };
 
-  // Soumission du formulaire pour créer ou modifier une vente
+  // Soumission du formulaire de création/modification de vente
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedClient) {
@@ -262,11 +271,10 @@ const Sales = () => {
       setError("La devise sélectionnée est introuvable.");
       return;
     }
-
     const productsForSale = selectedProducts.map((product) => ({
       productId: product.productId,
       quantity: product.quantity,
-      price: product.basePrice, // En USD
+      price: product.basePrice, // Prix de base en USD
       tax: product.tax,
       discount: product.discount,
     }));
@@ -275,8 +283,8 @@ const Sales = () => {
       clientId: selectedClient._id,
       currencyId: selectedCurrencyObj._id,
       products: productsForSale,
-      creditSale, // Indique si la vente est à crédit
-      // D'autres champs (ex. remarks) peuvent être ajoutés ici si besoin
+      creditSale,
+      remarks,
     };
 
     try {
@@ -287,7 +295,9 @@ const Sales = () => {
         await addSale(saleData);
         setSuccess("Vente créée avec succès.");
       }
+      // Rafraîchir la liste des ventes ET la liste des produits pour tenir compte du stock
       fetchSales();
+      fetchProducts();
       handleCloseModal();
     } catch (err) {
       setError("Erreur lors de la création/modification de la vente. " + err);
@@ -320,9 +330,8 @@ const Sales = () => {
     navigate(`/sales/print/${saleId}`);
   };
 
-  // Filtres pour la recherche dans la liste des ventes, clients et produits
+  // Filtrage pour la recherche dans la liste des ventes
   const filteredSales = sales.filter((sale) => {
-    // Pour le nom du client, on affiche soit le nom de l'entreprise s'il existe, soit prénom + nom
     const clientName = sale.client
       ? sale.client.companyName ||
         `${sale.client.firstName || ""} ${sale.client.lastName || ""}`
@@ -339,12 +348,14 @@ const Sales = () => {
     );
   });
 
+  // Filtrage pour la recherche dans la liste des clients
   const filteredClients = clients.filter((client) =>
     `${client.companyName || client.firstName + " " + client.lastName}`
       .toLowerCase()
       .includes(searchClient.toLowerCase()),
   );
 
+  // Filtrage pour la recherche dans la liste des produits
   const filteredProducts = products.filter(
     (product) =>
       product.productName.toLowerCase().includes(searchProduct.toLowerCase()) ||
@@ -390,57 +401,64 @@ const Sales = () => {
                   <th>Client</th>
                   <th>Date</th>
                   <th>Statut</th>
+                  <th>Type</th>
                   <th>Total</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentSales.map((sale) => (
-                  <tr key={sale._id}>
-                    <td>{sale._id}</td>
-                    <td>
-                      {sale.client
-                        ? sale.client.companyName ||
-                          `${sale.client.firstName || ""} ${sale.client.lastName || ""}`
-                        : ""}
-                    </td>
-                    <td>{new Date(sale.createdAt).toLocaleDateString()}</td>
-                    <td>{sale.saleStatus}</td>
-                    <td>
-                      {currency === "USD"
-                        ? `${sale.totalAmount} USD`
-                        : `${(sale.totalAmount * exchangeRate).toFixed(2)} ${currency}`}
-                    </td>
-                    <td>
-                      <Button
-                        variant="warning"
-                        className="me-2"
-                        onClick={() => handleShowModal(sale)}
-                      >
-                        <FaEdit className="me-1" />
-                      </Button>
-                      <Button
-                        variant="danger"
-                        className="me-2"
-                        onClick={() => handleDeleteSale(sale._id)}
-                      >
-                        <FaTrash className="me-1" />
-                      </Button>
-                      <Button
-                        variant="outline-danger"
-                        onClick={() => handleCancelSale(sale._id)}
-                      >
-                        <FaTimes className="me-1" />
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        onClick={() => handlePrintSale(sale._id)}
-                      >
-                        <FaPrint className="me-1" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
+                {currentSales.map((sale) => {
+                  const saleType = sale.creditSale
+                    ? "Credit " + sale.saleStatus
+                    : "Normal " + sale.saleStatus;
+                  return (
+                    <tr key={sale._id}>
+                      <td>{sale._id}</td>
+                      <td>
+                        {sale.client
+                          ? sale.client.companyName ||
+                            `${sale.client.firstName || ""} ${sale.client.lastName || ""}`
+                          : ""}
+                      </td>
+                      <td>{new Date(sale.createdAt).toLocaleDateString()}</td>
+                      <td>{sale.saleStatus}</td>
+                      <td>{saleType}</td>
+                      <td>
+                        {currency === "USD"
+                          ? `${sale.totalAmount} USD`
+                          : `${(sale.totalAmount * exchangeRate).toFixed(2)} ${currency}`}
+                      </td>
+                      <td>
+                        <Button
+                          variant="warning"
+                          className="me-2"
+                          onClick={() => handleShowModal(sale)}
+                        >
+                          <FaEdit className="me-1" />
+                        </Button>
+                        <Button
+                          variant="danger"
+                          className="me-2"
+                          onClick={() => handleDeleteSale(sale._id)}
+                        >
+                          <FaTrash className="me-1" />
+                        </Button>
+                        <Button
+                          variant="outline-danger"
+                          onClick={() => handleCancelSale(sale._id)}
+                        >
+                          <FaTimes className="me-1" />
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          onClick={() => handlePrintSale(sale._id)}
+                        >
+                          <FaPrint className="me-1" />
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </Table>
 
@@ -468,6 +486,8 @@ const Sales = () => {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
+          {/* Alerte d'erreur dans le modal */}
+          {error && <Alert variant="danger">{error}</Alert>}
           <Form onSubmit={handleSubmit}>
             <Row>
               {/* Colonne Clients */}
@@ -509,6 +529,13 @@ const Sales = () => {
                     </div>
                   ))}
                 </div>
+                {selectedClient && (
+                  <Alert variant="info" className="mt-2">
+                    Client sélectionné :{" "}
+                    {selectedClient.companyName ||
+                      `${selectedClient.firstName} ${selectedClient.lastName}`}
+                  </Alert>
+                )}
               </Col>
 
               {/* Colonne Produits */}
@@ -532,8 +559,7 @@ const Sales = () => {
                     >
                       <span>
                         {product.productName} - Barcode: {product.barcode} -{" "}
-                        {product.priceUSD} USD
-                        {" - "}Stock: {product.stockQuantity}
+                        {product.priceUSD} USD – Stock: {product.stockQuantity}
                       </span>
                       <Button
                         variant="outline-primary"
@@ -548,16 +574,15 @@ const Sales = () => {
               </Col>
             </Row>
 
-            {/* Section de sélection de la devise et affichage du taux de change */}
+            {/* Section Devise et Taux de change */}
             <Row className="mt-3">
               <Col md={6}>
                 <h5>Devise</h5>
                 <Form.Select
                   value={currency}
                   onChange={handleCurrencyChange}
-                  disabled={!!currentSale}
+                  disabled={!!currentSale} // En modification, la devise est figée
                 >
-                  {/* La devise est figée en modification */}
                   {currencies.map((cur) => (
                     <option key={cur._id} value={cur.currencyCode}>
                       {cur.currencyName} ({cur.currencyCode})
@@ -565,18 +590,17 @@ const Sales = () => {
                   ))}
                 </Form.Select>
                 <h6 className="mt-2">
-                  Taux de change actuel : {exchangeRate ? exchangeRate : "N/A"}
+                  Taux de change de la vente :{" "}
+                  {exchangeRate ? exchangeRate : "N/A"}
                 </h6>
               </Col>
               <Col md={6}>
                 {currentSale ? (
-                  // En modification, on affiche simplement le type de vente
                   <div className="mt-4">
                     <strong>Type de vente :</strong>{" "}
                     {creditSale ? "À crédit" : "Normale"}
                   </div>
                 ) : (
-                  // Lors de la création, on peut choisir d'indiquer une vente à crédit
                   <Form.Group controlId="creditSale" className="mt-4">
                     <Form.Check
                       type="checkbox"
@@ -586,6 +610,20 @@ const Sales = () => {
                     />
                   </Form.Group>
                 )}
+              </Col>
+            </Row>
+
+            {/* Section Remarques */}
+            <Row className="mt-3">
+              <Col>
+                <h5>Remarques</h5>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  placeholder="Saisir des remarques..."
+                  value={remarks}
+                  onChange={(e) => setRemarks(e.target.value)}
+                />
               </Col>
             </Row>
 
@@ -627,9 +665,8 @@ const Sales = () => {
                     <td>
                       <Form.Control
                         type="number"
-                        min="0"
                         value={product.price}
-                        readOnly // Le prix n'est pas modifiable
+                        readOnly
                       />
                     </td>
                     <td>
