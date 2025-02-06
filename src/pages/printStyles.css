@@ -1,5 +1,97 @@
 @media print {
+
+  /* Masquer les éléments non destinés à l'impression */
   .no-print {
     display: none !important;
+  }
+
+  /* Conteneur principal centré */
+  .print-container {
+    margin: 0 auto;
+    text-align: center;
+    font-family: "Arial", sans-serif;
+    line-height: 1.2;
+  }
+
+  /* En-tête avec logo et titre */
+  .header-section {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+
+  /* Tableau des produits */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  table th,
+  table td {
+    border: 1px solid black;
+    padding: 3px;
+    text-align: center;
+    font-size: 12px;
+  }
+
+  /* Suppression des bordures sur certains formats */
+  .pos57 table th,
+  .pos57 table td {
+    border: none;
+    font-size: 10px;
+  }
+
+  /* Format POS 80x80 mm */
+  .print-container.pos80 {
+    width: 80mm;
+    padding: 5mm;
+    font-size: 12px;
+  }
+
+  /* Format POS 57x40 mm */
+  .print-container.pos57 {
+    width: 57mm;
+    padding: 2mm;
+    font-size: 10px;
+  }
+
+  /* Format POS 76x76 mm */
+  .print-container.pos76 {
+    width: 76mm;
+    padding: 3mm;
+    font-size: 11px;
+  }
+
+  /* Format Letter (A4) */
+  .print-container.letter {
+    width: 8.5in;
+    padding: 1in;
+    font-size: 14px;
+  }
+
+  /* Code-barres centré */
+  .barcode {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 5px 0;
+  }
+
+  /* Résumé total */
+  .total-summary {
+    text-align: right;
+    font-size: 14px;
+    font-weight: bold;
+  }
+}
+
+@media screen {
+  .print-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
   }
 }
