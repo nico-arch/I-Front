@@ -18,6 +18,7 @@ import Orders from "./pages/Orders"; // Importer le composant Orders
 import OrderPrint from "./pages/OrderPrint"; // Importer le composant OrderPrint
 import Sales from "./pages/Sales"; // Page pour la gestion des ventes
 import SalesPrint from "./pages/SalesPrint"; // Page pour l'impression des ventes
+import SalePayments from "./pages/SalePayments"; // Page pour la gestion des paiements de vente
 
 const App = () => {
   // Fonction pour vérifier si l'utilisateur est authentifié
@@ -154,6 +155,19 @@ const App = () => {
         <Route
           path="/sales/print/:id"
           element={isAuthenticated() ? <SalesPrint /> : <Navigate to="/" />}
+        />
+
+        <Route
+          path="/sales/payments/:saleId"
+          element={
+            isAuthenticated() ? (
+              <Layout>
+                <SalePayments />
+              </Layout>
+            ) : (
+              <Navigate to="/" />
+            )
+          }
         />
 
         {/* Ajouter d'autres routes ici si nécessaire */}

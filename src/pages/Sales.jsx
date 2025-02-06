@@ -432,6 +432,15 @@ const Sales = () => {
 
                       <td>
                         <Button
+                          variant="info"
+                          onClick={() =>
+                            navigate(`/sales/payments/${sale._id}`)
+                          }
+                        >
+                          Gérer les Paiements
+                        </Button>
+
+                        <Button
                           variant="warning"
                           className="me-2"
                           onClick={() => handleShowModal(sale)}
