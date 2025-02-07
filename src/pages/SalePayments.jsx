@@ -12,7 +12,12 @@ import {
 } from "react-bootstrap";
 import { useParams, useNavigate } from "react-router-dom";
 import { getSaleById } from "../services/saleService";
-import { getPaymentsBySale, addPayment } from "../services/paymentService";
+import {
+  getPaymentsBySale,
+  addPayment,
+  cancelPayment,
+  deletePayment,
+} from "../services/paymentService";
 
 const SalePayments = () => {
   const { saleId } = useParams();
@@ -31,7 +36,7 @@ const SalePayments = () => {
     remarks: "",
   });
 
-  // Charge la vente et ses paiements
+  // Charger la vente et ses paiements associés
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -49,8 +54,11 @@ const SalePayments = () => {
     fetchData();
   }, [saleId]);
 
-  // Calculer le montant total déjà payé
-  const totalPaid = payments.reduce((acc, payment) => acc + payment.amount, 0);
+  // Calculer le montant total déjà payé en excluant les paiements annulés
+  const totalPaid = payments
+    .filter((payment) => payment.paymentStatus !== "cancelled")
+    .reduce((acc, payment) => acc + payment.amount, 0);
+
   // Calculer le montant restant à payer
   const remainingAmount = sale ? sale.totalAmount - totalPaid : 0;
 
@@ -65,23 +73,25 @@ const SalePayments = () => {
     e.preventDefault();
     setError("");
     setSuccess("");
-    // Vérifier si la vente est annulée (si oui, on ne permet pas d'ajouter de paiement)
+
+    // Vérifier que la vente n'est pas annulée
     if (sale.saleStatus === "cancelled") {
-      setError("Cannot add payment to a cancelled sale.");
+      setError("Impossible d'ajouter un paiement sur une vente annulée.");
       return;
     }
-    // Vérifier que le montant saisi ne dépasse pas le montant restant
+
     const paymentAmount = parseFloat(newPayment.amount);
     if (paymentAmount > remainingAmount) {
       setError("Le montant saisi dépasse le montant restant à payer.");
       return;
     }
+
     try {
       const paymentData = {
         saleId: saleId,
         clientId: sale.client._id,
         amount: paymentAmount,
-        currency: sale.currency.currencyCode, // La devise de la vente
+        currency: sale.currency.currencyCode, // Devise de la vente
         paymentType: newPayment.paymentType,
         remarks: newPayment.remarks,
       };
@@ -99,6 +109,34 @@ const SalePayments = () => {
       });
     } catch (err) {
       setError(err.message);
+    }
+  };
+
+  const handleCancelPayment = async (paymentId) => {
+    setError("");
+    setSuccess("");
+    try {
+      await cancelPayment(paymentId);
+      setSuccess("Paiement annulé avec succès.");
+      const paymentsData = await getPaymentsBySale(saleId);
+      setPayments(paymentsData);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleDeletePayment = async (paymentId) => {
+    if (
+      window.confirm("Êtes-vous sûr de vouloir supprimer ce paiement annulé ?")
+    ) {
+      try {
+        await deletePayment(paymentId);
+        setSuccess("Paiement supprimé avec succès.");
+        const paymentsData = await getPaymentsBySale(saleId);
+        setPayments(paymentsData);
+      } catch (err) {
+        setError(err.message);
+      }
     }
   };
 
@@ -222,7 +260,8 @@ const SalePayments = () => {
                 <th>Montant</th>
                 <th>Type</th>
                 <th>Remarques</th>
-                <th>Statut</th>
+                <th>Effectué par</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -234,7 +273,31 @@ const SalePayments = () => {
                   </td>
                   <td>{payment.paymentType}</td>
                   <td>{payment.remarks || "-"}</td>
-                  <td>{payment.paymentStatus}</td>
+                  <td>
+                    {payment.createdBy
+                      ? `${payment.createdBy.firstName} ${payment.createdBy.lastName}`
+                      : "N/A"}
+                  </td>
+                  <td>
+                    {payment.paymentStatus !== "cancelled" && (
+                      <Button
+                        variant="warning"
+                        size="sm"
+                        onClick={() => handleCancelPayment(payment._id)}
+                      >
+                        Annuler
+                      </Button>
+                    )}
+                    {payment.paymentStatus === "cancelled" && (
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => handleDeletePayment(payment._id)}
+                      >
+                        Supprimer
+                      </Button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

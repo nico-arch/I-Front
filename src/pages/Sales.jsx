@@ -18,6 +18,7 @@ import {
   FaTimes,
   FaSearch,
   FaPrint,
+  FaMoneyBillWave, // Importation de l'icône pour les paiements
 } from "react-icons/fa";
 import {
   getSales,
@@ -433,11 +434,12 @@ const Sales = () => {
                       <td>
                         <Button
                           variant="info"
+                          className="me-2"
                           onClick={() =>
                             navigate(`/sales/payments/${sale._id}`)
                           }
                         >
-                          Gérer les Paiements
+                          <FaMoneyBillWave />
                         </Button>
 
                         <Button
