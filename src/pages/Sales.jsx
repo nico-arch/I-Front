@@ -19,6 +19,7 @@ import {
   FaSearch,
   FaPrint,
   FaMoneyBillWave, // Importation de l'icône pour les paiements
+  FaUndoAlt,
 } from "react-icons/fa";
 import {
   getSales,
@@ -440,6 +441,14 @@ const Sales = () => {
                           }
                         >
                           <FaMoneyBillWave />
+                        </Button>
+
+                        <Button
+                          variant="secondary"
+                          className="me-2"
+                          onClick={() => navigate(`/sales/returns/${sale._id}`)}
+                        >
+                          <FaUndoAlt />
                         </Button>
 
                         <Button

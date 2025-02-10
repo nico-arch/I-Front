@@ -19,6 +19,7 @@ import OrderPrint from "./pages/OrderPrint"; // Importer le composant OrderPrint
 import Sales from "./pages/Sales"; // Page pour la gestion des ventes
 import SalesPrint from "./pages/SalesPrint"; // Page pour l'impression des ventes
 import SalePayments from "./pages/SalePayments"; // Page pour la gestion des paiements de vente
+import SaleReturns from "./pages/SaleReturns"; // Assurez-vous que le chemin est correct
 
 const App = () => {
   // Fonction pour vérifier si l'utilisateur est authentifié
@@ -163,6 +164,19 @@ const App = () => {
             isAuthenticated() ? (
               <Layout>
                 <SalePayments />
+              </Layout>
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+
+        <Route
+          path="/sales/returns/:saleId"
+          element={
+            isAuthenticated() ? (
+              <Layout>
+                <SaleReturns />
               </Layout>
             ) : (
               <Navigate to="/" />
