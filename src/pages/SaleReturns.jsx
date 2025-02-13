@@ -84,7 +84,8 @@ const SaleReturns = () => {
 
     // Préparer la liste des produits à retourner au format attendu par le backend
     const returnProductsData = productsToReturn.map((prod) => ({
-      product: prod.productId,
+      // Remplacer "product" par "productId" pour correspondre à ce que le backend attend
+      productId: prod.productId,
       quantity: prod.returnQuantity,
       price: prod.price,
     }));
