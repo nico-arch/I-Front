@@ -43,6 +43,22 @@ export const getReturnById = async (id) => {
   }
 };
 
+// **Ajout de la fonction getReturnsBySale**
+export const getReturnsBySale = async (saleId) => {
+  try {
+    const response = await axios.get(`${API_ENDPOINT}/sale/${saleId}`, {
+      headers,
+    });
+    return response.data;
+  } catch (err) {
+    throw new Error(
+      err.response?.data?.msg ||
+        "Erreur lors de la récupération des retours pour la vente error: " +
+          err,
+    );
+  }
+};
+
 // Modifier un retour
 export const editReturn = async (id, returnData) => {
   try {
@@ -60,13 +76,16 @@ export const editReturn = async (id, returnData) => {
 // Annuler un retour
 export const cancelReturn = async (id) => {
   try {
-    const response = await axios.delete(`${API_ENDPOINT}/cancel/${id}`, {
-      headers,
-    });
+    const response = await axios.put(
+      `${API_ENDPOINT}/cancel/${id}`,
+      {},
+      { headers },
+    );
     return response.data;
   } catch (err) {
     throw new Error(
-      err.response?.data?.msg || "Erreur lors de l'annulation du retour",
+      err.response?.data?.msg ||
+        "Erreur lors de l'annulation du retour, erreur : " + err,
     );
   }
 };

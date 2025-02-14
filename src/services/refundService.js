@@ -78,3 +78,18 @@ export const cancelRefund = async (id) => {
     );
   }
 };
+
+// **Nouvelle fonction : Obtenir le refund par vente**
+export const getRefundBySale = async (saleId) => {
+  try {
+    const response = await axios.get(`${API_ENDPOINT}/sale/${saleId}`, {
+      headers,
+    });
+    return response.data;
+  } catch (err) {
+    throw new Error(
+      err.response?.data?.msg ||
+        "Erreur lors de la récupération du refund par vente",
+    );
+  }
+};
