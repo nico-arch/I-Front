@@ -150,9 +150,7 @@ const Sales = () => {
         const basePrice = p.price;
         // Utiliser le taux enregistré (sale.exchangeRate) pour recalculer le prix affiché
         const displayedPrice =
-          sale.currency.currencyCode === "USD"
-            ? basePrice
-            : basePrice * sale.exchangeRate;
+          sale.currency.currencyCode === "USD" ? basePrice : basePrice;
         const total =
           (displayedPrice +
             (displayedPrice * p.tax) / 100 -
