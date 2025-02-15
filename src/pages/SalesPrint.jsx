@@ -72,7 +72,9 @@ const SalesPrint = () => {
       {/* En-tête */}
       <div className="header-section">
         <h2>Nom de l'Entreprise</h2>
-        <h3>Facture de Vente <hr/> #{sale._id} </h3>
+        <h3>
+          Facture de Vente <hr /> #{sale._id}{" "}
+        </h3>
       </div>
 
       {/* Code-barres */}
@@ -141,6 +143,10 @@ const SalesPrint = () => {
       {/* Total */}
       <p className="total-summary">
         Total : {Number(sale.totalAmount).toFixed(2)} {currencyCode}
+      </p>
+      {/* Remarks */}
+      <p className="">
+        <strong>Remarque :</strong> {sale.remarks || "Aucun remarque"}
       </p>
 
       {/* Bouton Retour */}

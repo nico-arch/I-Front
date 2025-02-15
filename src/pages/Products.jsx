@@ -196,10 +196,10 @@ const Products = () => {
                     ? "Afficher tous les produits"
                     : "Produits en rupture de stock"}
                 </Button>{" "}
-                <Button variant="info" onClick={handlePrintOutOfStock}>
+                {/* <Button variant="info" onClick={handlePrintOutOfStock}>
                   <FaPrint className="me-2" />
                   Imprimer les produits en rupture de stock
-                </Button>
+                </Button> */}
               </div>
               <div className="d-flex align-items-center">
                 <FaSearch className="me-2" />

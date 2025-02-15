@@ -17,15 +17,15 @@ import {
   getReturnsBySale,
   cancelReturn,
 } from "../services/returnService";
-import { getRefundBySale } from "../services/refundService"; // Assurez-vous de l'avoir dans votre service
+import { getRefundBySale } from "../services/refundService";
 
 const SaleReturns = () => {
   const { saleId } = useParams();
   const navigate = useNavigate();
 
   const [sale, setSale] = useState(null);
-  const [refund, setRefund] = useState(null);
-  const [returns, setReturns] = useState([]);
+  const [refund, setRefund] = useState(null); // Refund associé à la vente
+  const [returns, setReturns] = useState([]); // Liste des retours existants pour cette vente
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -34,11 +34,12 @@ const SaleReturns = () => {
   const [returnProducts, setReturnProducts] = useState([]);
   const [remarks, setRemarks] = useState("");
 
+  // Charger la vente et initialiser l'état pour le retour
   const fetchSaleData = async () => {
     try {
       const saleData = await getSaleById(saleId);
       setSale(saleData);
-      // Initialiser returnProducts à partir des produits de la vente
+      // Initialiser returnProducts à partir des produits de la vente (en s'assurant que le produit est peuplé)
       const initialReturns = saleData.products
         .filter((p) => p.product)
         .map((p) => ({
@@ -46,7 +47,7 @@ const SaleReturns = () => {
           productName: p.product.productName,
           barcode: p.product.barcode,
           soldQuantity: p.quantity,
-          price: p.price,
+          price: p.price, // Prix utilisé pour le calcul du remboursement
           returnQuantity: 0,
         }));
       setReturnProducts(initialReturns);
@@ -55,15 +56,19 @@ const SaleReturns = () => {
     }
   };
 
+  // Charger le refund associé à la vente
   const fetchRefundData = async () => {
     try {
       const refundData = await getRefundBySale(saleId);
       setRefund(refundData);
     } catch (err) {
       console.error("Erreur lors de la récupération du refund :", err);
+      // Si aucun refund n'est trouvé, on laisse refund à null
+      setRefund(null);
     }
   };
 
+  // Charger la liste des retours existants pour la vente
   const fetchReturnsData = async () => {
     try {
       const returnsData = await getReturnsBySale(saleId);
@@ -83,11 +88,13 @@ const SaleReturns = () => {
     loadData();
   }, [saleId]);
 
+  // Calculer le montant total à rembourser pour le nouveau retour
   const totalRefund = returnProducts.reduce(
     (acc, prod) => acc + prod.returnQuantity * prod.price,
     0,
   );
 
+  // Limiter la quantité de retour à la quantité vendue
   const handleReturnQuantityChange = (index, value) => {
     const updated = [...returnProducts];
     const qty = Math.min(parseInt(value) || 0, updated[index].soldQuantity);
@@ -95,6 +102,7 @@ const SaleReturns = () => {
     setReturnProducts(updated);
   };
 
+  // Soumission du formulaire de retour
   const handleSubmitReturn = async (e) => {
     e.preventDefault();
     setError("");
@@ -124,6 +132,7 @@ const SaleReturns = () => {
     try {
       const response = await addReturn(payload);
       setSuccess("Retour enregistré avec succès.");
+      // Rafraîchir les données après création
       await fetchSaleData();
       await fetchReturnsData();
       await fetchRefundData();
@@ -147,6 +156,7 @@ const SaleReturns = () => {
     }
   };
 
+  // Annuler un retour
   const handleCancelReturn = async (returnId) => {
     setError("");
     setSuccess("");
@@ -161,9 +171,10 @@ const SaleReturns = () => {
     }
   };
 
+  // Afficher les détails d'un retour (peut ouvrir un modal ou rediriger)
   const handleViewReturn = (returnId) => {
-    // Exemple : ouvrir un modal de détails ou rediriger
     console.log("Afficher les détails pour le retour", returnId);
+    // Vous pouvez rediriger ou ouvrir un modal avec les détails du retour
   };
 
   if (loading) {
@@ -212,7 +223,7 @@ const SaleReturns = () => {
           </Alert>
         )}
 
-        {/* Formulaire de création d'un nouveau retour */}
+        {/* Formulaire pour ajouter un nouveau retour */}
         <Card className="mt-4 p-3">
           <h5>Ajouter un Retour</h5>
           <Table striped bordered className="mt-3">
@@ -313,15 +324,6 @@ const SaleReturns = () => {
                     >
                       Afficher
                     </Button>
-                    {ret.refundStatus === "pending" && (
-                      <Button
-                        variant="warning"
-                        size="sm"
-                        onClick={() => handleCancelReturn(ret._id)}
-                      >
-                        Annuler
-                      </Button>
-                    )}
                   </td>
                 </tr>
               ))}
