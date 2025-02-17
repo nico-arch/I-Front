@@ -20,6 +20,7 @@ import Sales from "./pages/Sales"; // Page pour la gestion des ventes
 import SalesPrint from "./pages/SalesPrint"; // Page pour l'impression des ventes
 import SalePayments from "./pages/SalePayments"; // Page pour la gestion des paiements de vente
 import SaleReturns from "./pages/SaleReturns"; // Assurez-vous que le chemin est correct
+import ReturnPrint from "./pages/ReturnPrint"; // Import de la page ReturnPrint
 
 const App = () => {
   // Fonction pour vérifier si l'utilisateur est authentifié
@@ -177,6 +178,18 @@ const App = () => {
             isAuthenticated() ? (
               <Layout>
                 <SaleReturns />
+              </Layout>
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+        <Route
+          path="/returns/print/:id"
+          element={
+            isAuthenticated() ? (
+              <Layout>
+                <ReturnPrint />
               </Layout>
             ) : (
               <Navigate to="/" />

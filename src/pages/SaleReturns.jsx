@@ -10,6 +10,7 @@ import {
   Alert,
   Spinner,
 } from "react-bootstrap";
+import { FaEye } from "react-icons/fa";
 import { useParams, useNavigate } from "react-router-dom";
 import { getSaleById } from "../services/saleService";
 import {
@@ -316,13 +317,20 @@ const SaleReturns = () => {
                   </td>
                   <td>{ret.remarks || "-"}</td>
                   <td>
-                    <Button
+                    {/* <Button
                       variant="info"
                       size="sm"
                       className="me-2"
                       onClick={() => handleViewReturn(ret._id)}
                     >
                       Afficher
+                    </Button> */}
+                    <Button
+                      variant="info"
+                      size="sm"
+                      onClick={() => navigate(`/returns/print/${ret._id}`)}
+                    >
+                      <FaEye />
                     </Button>
                   </td>
                 </tr>

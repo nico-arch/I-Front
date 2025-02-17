@@ -17,6 +17,7 @@ import {
 } from "react-icons/fa";
 
 import { logout } from "../services/authService";
+import "../pages/printStyles.css"; // Vos styles d'impression personnalisés
 
 const Layout = ({ children }) => {
   const navigate = useNavigate();
@@ -40,7 +41,7 @@ const Layout = ({ children }) => {
             position: "fixed",
           }}
         >
-          <h4 className="text-center mb-4">Lymoner</h4>
+          <h4 className="text-center mb-4 no-print">Lymoner</h4>
           <Nav className="flex-column">
             <NavLink
               to="/dashboard"
