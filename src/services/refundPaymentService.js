@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_ENDPOINT = `${API_URL_V1}/refundPayments`;
+const API_ENDPOINT = `${API_URL_V1}/refundPayment`;
 const headers = {
   Authorization: `Bearer ${localStorage.getItem("token")}`,
 };
@@ -30,7 +30,7 @@ export const getRefundPayments = async (refundId) => {
   } catch (err) {
     throw new Error(
       err.response?.data?.msg ||
-        "Erreur lors de la récupération des paiements de remboursement.",
+        "Erreur lors de la récupération des paiements de remboursement. Error:" + err,
     );
   }
 };
@@ -50,6 +50,21 @@ export const cancelRefundPayment = async (id) => {
     throw new Error(
       err.response?.data?.msg ||
         "Erreur lors de l'annulation du paiement de remboursement.",
+    );
+  }
+};
+
+// Supprimer un paiement de remboursement (ajouté)
+export const deleteRefundPayment = async (paymentId) => {
+  try {
+    const response = await axios.delete(`${API_ENDPOINT}/delete/${paymentId}`, {
+      headers,
+    });
+    return response.data;
+  } catch (err) {
+    throw new Error(
+      err.response?.data?.msg ||
+        "Erreur lors de la suppression du paiement de remboursement.",
     );
   }
 };

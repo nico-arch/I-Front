@@ -20,6 +20,7 @@ import Sales from "./pages/Sales"; // Page pour la gestion des ventes
 import SalesPrint from "./pages/SalesPrint"; // Page pour l'impression des ventes
 import SalePayments from "./pages/SalePayments"; // Page pour la gestion des paiements de vente
 import SaleReturns from "./pages/SaleReturns"; // Assurez-vous que le chemin est correct
+import SaleRefunds from "./pages/SaleRefunds"; // Import de la page de gestion des paiements de remboursement
 import ReturnPrint from "./pages/ReturnPrint"; // Import de la page ReturnPrint
 
 const App = () => {
@@ -184,6 +185,19 @@ const App = () => {
             )
           }
         />
+        <Route
+          path="/sales/refunds/:saleId"
+          element={
+            isAuthenticated() ? (
+              <Layout>
+                <SaleRefunds />
+              </Layout>
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+
         <Route
           path="/returns/print/:id"
           element={
