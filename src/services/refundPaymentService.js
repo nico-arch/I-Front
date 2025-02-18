@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_ENDPOINT = `${API_URL_V1}/refundPayment`;
+const API_ENDPOINT = `${API_URL_V1}/refundPayments`;
 const headers = {
   Authorization: `Bearer ${localStorage.getItem("token")}`,
 };

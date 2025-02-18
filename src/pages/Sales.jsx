@@ -21,6 +21,7 @@ import {
   FaMoneyBillWave, // Importation de l'icône pour les paiements
   FaUndoAlt,
   FaUndo,
+  FaRedo,
 } from "react-icons/fa";
 import {
   getSales,
@@ -33,6 +34,7 @@ import { getClients } from "../services/clientService";
 import { getProducts } from "../services/productService";
 import { getCurrencies } from "../services/currencyService";
 import { getCurrentRate } from "../services/exchangeRateService";
+import { getRefundBySale } from "../services/refundService"; // Assurez-vous que cette fonction est exportée correctement
 import { useNavigate } from "react-router-dom";
 
 const Sales = () => {
@@ -369,6 +371,22 @@ const Sales = () => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+  // Fonction pour gérer l'action du bouton "refund"
+  const handleRefundButton = async (saleId) => {
+    try {
+      // Appel du service pour obtenir le refund associé à la vente
+      const refund = await getRefundBySale(saleId);
+      if (refund && refund._id) {
+        navigate(`/sales/refunds/${refund._id}`);
+      } else {
+        alert("Aucun refund associé à cette vente.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert(error.message || "Erreur lors de la récupération du refund.");
+    }
+  };
+
   return (
     <Container fluid className="mt-4">
       <Row>
@@ -401,7 +419,7 @@ const Sales = () => {
                   <th>ID</th>
                   <th>Client</th>
                   <th>Date</th>
-                  <th>Statut</th>
+                  {/* <th>Statut</th> */}
                   <th>Type</th>
                   <th>Total</th>
                   <th>Actions</th>
@@ -422,7 +440,7 @@ const Sales = () => {
                           : ""}
                       </td>
                       <td>{new Date(sale.createdAt).toLocaleDateString()}</td>
-                      <td>{sale.saleStatus}</td>
+                      {/* <td>{sale.saleStatus}</td> */}
                       <td>{saleType}</td>
                       <td>
                         {sale.totalAmount}{" "}
@@ -450,12 +468,19 @@ const Sales = () => {
                           <FaUndoAlt />
                         </Button>
 
-                        <Button
+                        {/* <Button
                           variant="info"
                           className="me-2"
                           onClick={() => navigate(`/sales/refunds/${sale._id}`)}
                         >
                           <FaUndo />
+                        </Button> */}
+                        <Button
+                          variant="info"
+                          className="me-2"
+                          onClick={() => handleRefundButton(sale._id)}
+                        >
+                          <FaRedo />
                         </Button>
 
                         <Button

@@ -11,7 +11,7 @@ import {
   Spinner,
 } from "react-bootstrap";
 import { useParams, useNavigate } from "react-router-dom";
-import { getRefundBySale } from "../services/refundService";
+import { getRefundBySale, getRefundById } from "../services/refundService";
 import {
   getRefundPayments,
   addRefundPayment,
@@ -39,7 +39,8 @@ const SaleRefunds = () => {
   // Charge le Refund associé à la vente
   const fetchRefund = async () => {
     try {
-      const refundData = await getRefundBySale(saleId);
+      //const refundData = await getRefundBySale(saleId);
+      const refundData = await getRefundById(saleId);
       setRefund(refundData);
     } catch (err) {
       setError(err.message);
@@ -67,8 +68,12 @@ const SaleRefunds = () => {
 
   // Lorsque le refund est chargé, on charge ses paiements
   useEffect(() => {
-    if (refund && refund._id) {
-      fetchPayments(refund._id);
+    //if (refund && refund._id) {
+    // fetchPayments(refund._id);
+    //}
+    if (saleId) {
+      // Ici, le saleId est le refundId
+      fetchPayments(saleId);
     }
   }, [refund]);
 
@@ -106,7 +111,8 @@ const SaleRefunds = () => {
 
     try {
       const paymentData = {
-        refundId: refund._id,
+        //refundId: refund._id,
+        refundId: saleId,
         paymentAmount,
         paymentMethod: newPayment.paymentMethod,
         remarks: newPayment.remarks,
@@ -175,7 +181,7 @@ const SaleRefunds = () => {
     <Container className="mt-4">
       <Card className="shadow p-4">
         <h2 className="text-center mb-4">
-          Gestion des Paiements de Remboursement pour la Vente #{saleId}
+          Gestion des Paiements de Remboursement pour la Vente #{refund.sale}
         </h2>
         <Button variant="secondary" onClick={() => navigate("/sales")}>
           Retour
