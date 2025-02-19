@@ -9,7 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "electron": "electron electron.js",
-    "package-win": "CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --win"
+    "package-win": "electron-builder --win"
   },
   "keywords": [],
   "author": "",
