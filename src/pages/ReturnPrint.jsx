@@ -69,10 +69,17 @@ const ReturnPrint = () => {
       }}
       className="print-container"
     >
-      <h2 className="text-center">Retour #{returnEntry._id}</h2>
+      <h1 className="text-center">
+        <strong>Coin Des Trouvailles</strong>
+      </h1>
+      <h6 className="text-center">6 Rue Clerveaux Petionville</h6>
+      <h6 className="text-center">coindestrouvailles1@gmail.com</h6>
+      <h6 className="text-center">+509 41 35 0004</h6>
+      <hr />
+      <h5 className="text-center">Retour #{returnEntry._id}</h5>
 
       {/* Génération du code-barres basé sur l'ID du retour */}
-      {/* <div className="text-center my-3">
+      <div className="text-center my-3">
         <Barcode
           value={returnEntry._id}
           width={1}
@@ -80,7 +87,7 @@ const ReturnPrint = () => {
           fontSize={12}
           margin={1}
         />
-      </div> */}
+      </div> 
 
       <hr />
 

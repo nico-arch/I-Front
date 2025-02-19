@@ -85,12 +85,14 @@ const Layout = ({ children }) => {
             >
               <FaChartBar className="me-2" /> Ventes
             </NavLink>
+            {/*
             <NavLink
               to="/services"
               className="nav-link text-light d-flex align-items-center mb-3"
             >
               <FaCogs className="me-2" /> Services
             </NavLink>
+            */}
             <NavLink
               to="/suppliers"
               className="nav-link text-light d-flex align-items-center mb-3"

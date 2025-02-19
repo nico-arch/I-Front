@@ -71,14 +71,18 @@ const SalesPrint = () => {
     <div className={`print-container ${printFormat}`}>
       {/* En-tête */}
       <div className="header-section">
-        <h2>Nom de l'Entreprise</h2>
-        <h3>
-          Facture de Vente <hr /> #{sale._id}{" "}
-        </h3>
+        <h1 className="text-center">
+          <strong>Coin Des Trouvailles</strong>
+        </h1>
+        <h6 className="text-center">6 Rue Clerveaux Petionville</h6>
+        <h6 className="text-center">coindestrouvailles1@gmail.com</h6>
+        <h6 className="text-center">+509 41 35 0004</h6>
+        <hr />
+        <h5 className="text-center">Vente #{sale._id}</h5>
       </div>
 
       {/* Code-barres */}
-      <div className="barcode">
+      <div className="barcode text-center">
         <Barcode
           value={sale._id}
           width={1}

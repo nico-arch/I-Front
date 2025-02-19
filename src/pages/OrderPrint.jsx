@@ -65,7 +65,14 @@ const OrderPrint = () => {
       }}
       className="print-container"
     >
-      <h2 className="text-center">Commande #{order._id}</h2>
+      <h1 className="text-center">
+        <strong>Coin Des Trouvailles</strong>
+      </h1>
+      <h6 className="text-center">6 Rue Clerveaux Petionville</h6>
+      <h6 className="text-center">coindestrouvailles1@gmail.com</h6>
+      <h6 className="text-center">+509 41 35 0004</h6>
+      <hr />
+      <h5 className="text-center">Commande #{order._id}</h5>
       {/* Génération du code-barres basé sur l'ID de la vente */}
       <div className="text-center my-3">
         <Barcode
