@@ -23,7 +23,6 @@ import SaleReturns from "./pages/SaleReturns"; // Assurez-vous que le chemin est
 import SaleRefunds from "./pages/SaleRefunds"; // Import de la page de gestion des paiements de remboursement
 import ReturnPrint from "./pages/ReturnPrint"; // Import de la page ReturnPrint
 
-
 const App = () => {
   // Fonction pour vérifier si l'utilisateur est authentifié
   const userId = localStorage.getItem("userId");
@@ -205,15 +204,7 @@ const App = () => {
 
         <Route
           path="/returns/print/:id"
-          element={
-            isAuthenticated() ? (
-              <Layout>
-                <ReturnPrint />
-              </Layout>
-            ) : (
-              <Navigate to="/" />
-            )
-          }
+          element={isAuthenticated() ? <ReturnPrint /> : <Navigate to="/" />}
         />
 
         {/* Ajouter d'autres routes ici si nécessaire */}

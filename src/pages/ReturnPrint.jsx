@@ -87,7 +87,7 @@ const ReturnPrint = () => {
           fontSize={12}
           margin={1}
         />
-      </div> 
+      </div>
 
       <hr />
 
@@ -156,13 +156,13 @@ const ReturnPrint = () => {
         >
           Retour
         </Button>
-        {/* <Button
+        <Button
           variant="secondary"
           className="ms-2 no-print"
           onClick={() => window.print()}
         >
           Imprimer
-        </Button> */}
+        </Button>
       </div>
     </div>
   );

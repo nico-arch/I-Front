@@ -10,6 +10,7 @@ import {
   Container,
   Row,
   Col,
+  Dropdown,
 } from "react-bootstrap";
 import {
   FaPlus,
@@ -450,65 +451,117 @@ const Sales = () => {
                       </td>
 
                       <td>
-                        <Button
-                          variant="info"
-                          className="me-2"
-                          onClick={() =>
-                            navigate(`/sales/payments/${sale._id}`)
-                          }
-                        >
-                          <FaMoneyBillWave />
-                        </Button>
+                        <td>
+                          {/* Affichage inline pour écrans md et plus */}
+                          <div className="d-none d-md-flex flex-wrap">
+                            <Button
+                              variant="info"
+                              className="me-2 mb-2"
+                              onClick={() =>
+                                navigate(`/sales/payments/${sale._id}`)
+                              }
+                            >
+                              <FaMoneyBillWave />
+                            </Button>
+                            <Button
+                              variant="secondary"
+                              className="me-2 mb-2"
+                              onClick={() =>
+                                navigate(`/sales/returns/${sale._id}`)
+                              }
+                            >
+                              <FaUndoAlt />
+                            </Button>
+                            <Button
+                              variant="info"
+                              className="me-2 mb-2"
+                              onClick={() => handleRefundButton(sale._id)}
+                            >
+                              <FaRedo />
+                            </Button>
+                            <Button
+                              variant="warning"
+                              className="me-2 mb-2"
+                              onClick={() => handleShowModal(sale)}
+                            >
+                              <FaEdit className="me-1" />
+                            </Button>
+                            <Button
+                              variant="danger"
+                              className="me-2 mb-2"
+                              onClick={() => handleDeleteSale(sale._id)}
+                            >
+                              <FaTrash className="me-1" />
+                            </Button>
+                            <Button
+                              variant="outline-danger"
+                              className="me-2 mb-2"
+                              onClick={() => handleCancelSale(sale._id)}
+                            >
+                              <FaTimes className="me-1" />
+                            </Button>
+                            <Button
+                              variant="secondary"
+                              className="mb-2"
+                              onClick={() => handlePrintSale(sale._id)}
+                            >
+                              <FaPrint className="me-1" />
+                            </Button>
+                          </div>
 
-                        <Button
-                          variant="secondary"
-                          className="me-2"
-                          onClick={() => navigate(`/sales/returns/${sale._id}`)}
-                        >
-                          <FaUndoAlt />
-                        </Button>
-
-                        {/* <Button
-                          variant="info"
-                          className="me-2"
-                          onClick={() => navigate(`/sales/refunds/${sale._id}`)}
-                        >
-                          <FaUndo />
-                        </Button> */}
-                        <Button
-                          variant="info"
-                          className="me-2"
-                          onClick={() => handleRefundButton(sale._id)}
-                        >
-                          <FaRedo />
-                        </Button>
-
-                        <Button
-                          variant="warning"
-                          className="me-2"
-                          onClick={() => handleShowModal(sale)}
-                        >
-                          <FaEdit className="me-1" />
-                        </Button>
-                        <Button
-                          variant="danger"
-                          className="me-2"
-                          onClick={() => handleDeleteSale(sale._id)}
-                        >
-                          <FaTrash className="me-1" />
-                        </Button>
-                        <Button
-                          variant="outline-danger"
-                          onClick={() => handleCancelSale(sale._id)}
-                        >
-                          <FaTimes className="me-1" />
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          onClick={() => handlePrintSale(sale._id)}
-                        >
-                          <FaPrint className="me-1" />
-                        </Button>
+                          {/* Affichage dropdown pour petits écrans */}
+                          <div className="d-block d-md-none">
+                            <Dropdown>
+                              <Dropdown.Toggle
+                                variant="secondary"
+                                id="dropdown-actions"
+                              >
+                                Actions
+                              </Dropdown.Toggle>
+                              <Dropdown.Menu>
+                                <Dropdown.Item
+                                  onClick={() =>
+                                    navigate(`/sales/payments/${sale._id}`)
+                                  }
+                                >
+                                  <FaMoneyBillWave className="me-2" /> Paiements
+                                </Dropdown.Item>
+                                <Dropdown.Item
+                                  onClick={() =>
+                                    navigate(`/sales/returns/${sale._id}`)
+                                  }
+                                >
+                                  <FaUndoAlt className="me-2" /> Retours
+                                </Dropdown.Item>
+                                <Dropdown.Item
+                                  onClick={() => handleRefundButton(sale._id)}
+                                >
+                                  <FaRedo className="me-2" /> Refund
+                                </Dropdown.Item>
+                                <Dropdown.Item
+                                  onClick={() => handleShowModal(sale)}
+                                >
+                                  <FaEdit className="me-2" /> Modifier
+                                </Dropdown.Item>
+                                <Dropdown.Item
+                                  onClick={() => handleDeleteSale(sale._id)}
+                                >
+                                  <FaTrash className="me-2" /> Supprimer
+                                </Dropdown.Item>
+                                <Dropdown.Item
+                                  onClick={() => handleCancelSale(sale._id)}
+                                >
+                                  <FaTimes className="me-2" /> Annuler
+                                </Dropdown.Item>
+                                <Dropdown.Item
+                                  onClick={() => handlePrintSale(sale._id)}
+                                >
+                                  <FaPrint className="me-2" /> Imprimer
+                                </Dropdown.Item>
+                              </Dropdown.Menu>
+                            </Dropdown>
+                          </div>
+                        </td>
                       </td>
                     </tr>
                   );
