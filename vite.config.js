@@ -8,6 +8,7 @@ export default defineConfig({
     host: "0.0.0.0",
   },
   define: {
-    API_URL_V1: `"${process.env["API_URL_V1"]}"`,
+    //API_URL_V1: `"${process.env["API_URL_V1"]}"`,
+    API_URL_V1: `"http://localhost:5000"`,
   },
 });
