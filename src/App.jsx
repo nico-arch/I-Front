@@ -26,8 +26,12 @@ import ReturnPrint from "./pages/ReturnPrint"; // Import de la page ReturnPrint
 const App = () => {
   // Fonction pour vérifier si l'utilisateur est authentifié
   const userId = localStorage.getItem("userId");
+  const userFirstName = localStorage.getItem("userFirstName");
+  const userLastName = localStorage.getItem("userLastName");
   if (userId) {
     console.log("Utilisateur connecté avec ID :", userId);
+    console.log("User firstname:" + userFirstName);
+    console.log("User lastname:" + userLastName);
   } else {
     console.log("Aucun utilisateur connecté.");
   }

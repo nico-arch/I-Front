@@ -75,6 +75,10 @@ export const login = async (email, password) => {
     localStorage.setItem("token", token);
     const decoded = jwtDecode(token);
     localStorage.setItem("userId", decoded.user.id);
+    localStorage.setItem("userFirstName", decoded.user.firstName);
+    localStorage.setItem("userLastName", decoded.user.lastName);
+    //console.log("user firstName:" + decoded.user.firstName);
+    //console.log("user lastName:" + decoded.user.lastName);
     return token;
   } catch (error) {
     console.error("Erreur lors de la connexion :", error);
@@ -89,6 +93,8 @@ export const isAuthenticated = () => {
 export const logout = () => {
   localStorage.removeItem("token");
   localStorage.removeItem("userId");
+  localStorage.removeItem("userFirstName");
+  localStorage.removeItem("userLastName");
   // Forcer le rechargement de l'application pour effacer le cache de l'utilisateur précédent
   //window.location.reload();
 };

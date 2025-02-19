@@ -12,6 +12,7 @@ const Dashboard = () => {
   return (
     <Container fluid className="mt-4">
       {/* Row des statistiques principales */}
+      <h1>Bienvenue {localStorage.getItem("userFirstName")} {localStorage.getItem("userLastName")} !</h1>
       <Row>
         <Col md={4} sm={6} xs={12} className="mb-4">
           <Card className="text-center shadow">
