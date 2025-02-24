@@ -27,6 +27,7 @@ const Suppliers = () => {
     companyName: "",
     contacts: [],
     emails: [],
+	phone: "",
     addresses: [],
     cities: [],
     countries: [],
@@ -60,6 +61,7 @@ const Suppliers = () => {
             companyName: "",
             contacts: [],
             emails: [],
+			phone: "",
             addresses: [],
             cities: [],
             countries: [],
@@ -166,6 +168,7 @@ const Suppliers = () => {
                 <tr>
                   <th>Nom de l'entreprise</th>
                   <th>Emails</th>
+				  <th>Téléphone</th>
                   <th>Adresses</th>
                   <th>Actions</th>
                 </tr>
@@ -175,6 +178,7 @@ const Suppliers = () => {
                   <tr key={supplier._id}>
                     <td>{supplier.companyName}</td>
                     <td>{supplier.emails.join(", ")}</td>
+					<td>{supplier.phone}</td>
                     <td>{supplier.addresses.join(", ")}</td>
                     <td>
                       <Button
@@ -247,6 +251,15 @@ const Suppliers = () => {
                 }
               />
             </Form.Group>
+			<Form.Group controlId="phone" className="mt-3">
+			  <Form.Label>Téléphone</Form.Label>
+			  <Form.Control
+			    type="text"
+				name="phone"
+				value={formData.phone}
+				onChange={handleChange}
+			  />
+			 </Form.Group>
             <Form.Group controlId="addresses" className="mt-3">
               <Form.Label>Adresses</Form.Label>
               <Form.Control

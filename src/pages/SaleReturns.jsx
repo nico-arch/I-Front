@@ -151,6 +151,7 @@ const SaleReturns = () => {
             returnQuantity: 0,
           }));
         setReturnProducts(updatedReturns);
+		window.location.reload();
       }
     } catch (err) {
       setError(err.message);

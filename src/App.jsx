@@ -1,6 +1,6 @@
 import React from "react";
 import {
-  BrowserRouter as Router,
+  HashRouter as Router, // Remplacez BrowserRouter par HashRouter
   Route,
   Routes,
   Navigate,
@@ -56,6 +56,7 @@ const App = () => {
             )
           }
         />
+		
         <Route
           path="/users"
           element={
@@ -68,6 +69,7 @@ const App = () => {
             )
           }
         />
+		
         <Route
           path="/clients"
           element={
@@ -80,6 +82,7 @@ const App = () => {
             )
           }
         />
+		
         <Route
           path="/categories"
           element={

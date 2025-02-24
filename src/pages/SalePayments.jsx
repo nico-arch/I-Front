@@ -58,9 +58,14 @@ const SalePayments = () => {
   const totalPaid = payments
     .filter((payment) => payment.paymentStatus !== "cancelled")
     .reduce((acc, payment) => acc + payment.amount, 0);
-
+	
+	
+	console.log("totalPaid :"+totalPaid);
+  
   // Calculer le montant restant à payer
-  const remainingAmount = sale ? sale.totalAmount - totalPaid : 0;
+  const remainingAmountDecimal = sale ? sale.totalAmount - totalPaid : 0;
+  const remainingAmount = +remainingAmountDecimal.toFixed(2);
+  console.log("remainingAmount :"+ remainingAmount);
 
   const handleInputChange = (e) => {
     setNewPayment({
@@ -81,8 +86,15 @@ const SalePayments = () => {
     }
 
     const paymentAmount = parseFloat(newPayment.amount);
+	if (paymentAmount <= 0)
+	{
+		setError("Le montant doit être supérieur ou égale à 0.");
+      return;
+	}
+
+	
     if (paymentAmount > remainingAmount) {
-      setError("Le montant saisi dépasse le montant restant à payer.");
+      setError(`Le montant saisi dépasse le montant restant à payer (${remainingAmount} ${sale.currency.currencyCode}).`);
       return;
     }
 
@@ -212,10 +224,14 @@ const SalePayments = () => {
                   value={newPayment.amount}
                   onChange={handleInputChange}
                   placeholder="Montant"
-                  required
+                  
+                />
+				{/*
+				  required
                   min="0"
                   max={remainingAmount}
-                />
+				  */}
+				  
               </Form.Group>
               <Form.Group className="mb-2" controlId="paymentType">
                 <Form.Label>Type de Paiement</Form.Label>

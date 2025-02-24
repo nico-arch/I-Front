@@ -30,6 +30,7 @@ const Clients = () => {
     companyName: "",
     address: "",
     email: "",
+	phone: "",
     website: "",
     governmentId: "",
   });
@@ -63,6 +64,7 @@ const Clients = () => {
             companyName: "",
             address: "",
             email: "",
+			phone: "",
             website: "",
             governmentId: "",
           },
@@ -167,6 +169,7 @@ const Clients = () => {
                 <tr>
                   <th>Nom complet / Nom de l'entreprise</th>
                   <th>Email</th>
+				  <th>Téléphone</th>
                   <th>Adresse</th>
                   <th>Actions</th>
                 </tr>
@@ -176,6 +179,7 @@ const Clients = () => {
                   <tr key={client._id}>
                     <td>{client.companyName}</td>
                     <td>{client.email}</td>
+					<td>{client.phone}</td>
                     <td>{client.address}</td>
                     <td>
                       <Button
@@ -239,9 +243,18 @@ const Clients = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                required
+                
               />
             </Form.Group>
+			<Form.Group controlId="phone" className="mt-3">
+			  <Form.Label>Téléphone</Form.Label>
+			  <Form.Control
+                type="phone"
+				name="phone"
+				value={formData.phone}
+				onChange={handleChange}
+			   />
+		   </Form.Group>
             <Form.Group controlId="address" className="mt-3">
               <Form.Label>Adresse</Form.Label>
               <Form.Control
