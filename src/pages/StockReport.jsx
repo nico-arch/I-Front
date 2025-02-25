@@ -127,11 +127,12 @@ const StockReport = () => {
 
     {/* Boutons en bas : Imprimer et Retour */}
     <div className="text-center mt-4 no-print">
-      <Button variant="secondary" onClick={() => window.print()}>
-        Imprimer
-      </Button>
       <Button variant="primary" className="ms-2" onClick={() => navigate("/dashboard")}>
         Retour au Dashboard
+      </Button>
+      {" "}
+      <Button variant="secondary" onClick={() => window.print()}>
+        Imprimer
       </Button>
     </div>
   </Container>);

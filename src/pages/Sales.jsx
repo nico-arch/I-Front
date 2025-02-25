@@ -422,7 +422,7 @@ const Sales = () => {
                   <th>Date</th>
                   {/* <th>Statut</th> */}
                   <th>Type</th>
-                  <th>Total</th>
+                  {/* <th>Total</th> */}
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -443,13 +443,12 @@ const Sales = () => {
                       <td>{new Date(sale.createdAt).toLocaleDateString()}</td>
                       {/* <td>{sale.saleStatus}</td> */}
                       <td>{saleType}</td>
-                      <td>
+                      {/* <td>
                         {sale.totalAmount}{" "}
                         {sale.currency && sale.currency.currencyCode
                           ? sale.currency.currencyCode
                           : "USD"}
-                      </td>
-
+                      </td> */}
                       <td>
                         <td>
                           {/* Affichage inline pour écrans md et plus */}
