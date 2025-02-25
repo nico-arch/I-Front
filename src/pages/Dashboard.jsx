@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Container,
   Row,
@@ -7,6 +8,7 @@ import {
   ListGroup,
   Spinner,
   Alert,
+  Button
 } from "react-bootstrap";
 import {
   FaShoppingCart,
@@ -22,6 +24,8 @@ import { getClients } from "../services/clientService";
 import { getProducts } from "../services/productService";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  
   const [sales, setSales] = useState([]);
   const [clients, setClients] = useState([]);
   const [products, setProducts] = useState([]);
@@ -217,6 +221,22 @@ const Dashboard = () => {
                   <ListGroup.Item>Aucune alerte de stock</ListGroup.Item>
                 )}
               </ListGroup>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+      {/* Nouveau bouton pour le rapport d'inventaire */}
+      <Row>
+        <Col>
+          <Card className="shadow">
+            <Card.Body className="text-center">
+              <Card.Title>Rapport d'inventaire</Card.Title>
+              <Card.Text>
+                Générez un rapport d'inventaire par catégorie pour vérifier le stock physique.
+              </Card.Text>
+              <Button variant="primary" onClick={() => navigate("/stock-report")}>
+                Voir le rapport
+              </Button>
             </Card.Body>
           </Card>
         </Col>

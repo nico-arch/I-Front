@@ -42,7 +42,8 @@
     "files": [
       "dist/**",
       "electron.js",
-	  "server.js",
+      "server.js",
+      "icon.ico",
       "package.json"
     ],
     "directories": {

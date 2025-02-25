@@ -65,3 +65,20 @@ export const deleteCategory = async (id) => {
     );
   }
 };
+
+/**
+ * Récupérer les produits d'une catégorie donnée
+ */
+export const getProductsByCategory = async (categoryId) => {
+  try {
+    const response = await axios.get(`${API_ENDPOINT}/${categoryId}/products`, {
+      headers,
+    });
+    return response.data;
+  } catch (err) {
+    throw new Error(
+      err.response?.data?.msg ||
+        "Erreur lors de la récupération des produits par catégorie"
+    );
+  }
+};
