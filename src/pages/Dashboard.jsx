@@ -25,7 +25,7 @@ import { getProducts } from "../services/productService";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  
+
   const [sales, setSales] = useState([]);
   const [clients, setClients] = useState([]);
   const [products, setProducts] = useState([]);
