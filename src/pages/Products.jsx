@@ -67,13 +67,14 @@ const Products = () => {
       product
         ? { ...product, categories: product.categories.map((c) => c._id) }
         : {
-            productName: "",
-            description: "",
-            barcode: "",
-            priceUSD: "",
-            stockQuantity: "",
-            categories: [],
-          },
+          productName: "",
+          description: "",
+          barcode: "",
+          priceUSD: "",
+          purchasePrice: "", // Nouveau champ
+          stockQuantity: "",
+          categories: [],
+        },
     );
     setShowModal(true);
     setError("");
@@ -322,6 +323,18 @@ const Products = () => {
                 required
               />
             </Form.Group>
+
+            <Form.Group controlId="purchasePrice" className="mt-3">
+              <Form.Label>Prix d'achat (USD)</Form.Label>
+              <Form.Control
+                type="number"
+                name="purchasePrice"
+                value={formData.purchasePrice}
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
+
             <Form.Group controlId="stockQuantity" className="mt-3">
               <Form.Label>Quantité en stock</Form.Label>
               <Form.Control
